@@ -2,11 +2,12 @@
 #define PCL_TYPEDEFS_H_
 
 #include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 
 typedef pcl::PointXYZRGB PointType;
 typedef pcl::PointNormal PointNormal;
 
-//typedef typename pcl::PointCloud<PointType> PointCloud;
+//typedef pcl::PointCloud<PointType> PointCloud;
 
 
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;

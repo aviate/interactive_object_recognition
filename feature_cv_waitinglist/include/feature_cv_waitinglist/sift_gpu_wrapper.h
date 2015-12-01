@@ -30,9 +30,9 @@
  */
 class SiftGPUWrapper {
 public:
-    /*!
-     * Destructor
-     */
+	/*!
+	 * Destructor
+	 */
 	virtual ~SiftGPUWrapper();
 
 	/*!
@@ -45,7 +45,11 @@ public:
 	 * \param  mask         a mask (see OpenCV)
 	 * \return a pointer to the descriptor values
 	 */
-	void detect(const cv::Mat& image, cv::vector<cv::KeyPoint>& keypoints, std::vector<float>& descriptors, const cv::Mat& mask = cv::Mat()) const;
+	void detect(
+		const cv::Mat& image,
+		cv::vector<cv::KeyPoint>& keypoints,
+		std::vector<float>& descriptors,
+		const cv::Mat& mask = cv::Mat()) const;
 
 	/*!
 	 * Is used for matching two descriptors
@@ -57,7 +61,12 @@ public:
 	 * \param  matches          is used to store the matches
 	 * \return the summed distance of the corresponding descriptors
 	 */
-	int match(const std::vector<float>& descriptors1, int num1, const std::vector<float>& descriptors2, int num2, std::vector<cv::DMatch>* matches);
+	int match(
+		const std::vector<float>& descriptors1,
+		int num1,
+		const std::vector<float>& descriptors2,
+		int num2,
+		std::vector<cv::DMatch>* matches);
 
 	/*!
 	 * Return instance of the singleton class
@@ -92,15 +101,15 @@ private:
 	 */
 	void writePGM(FILE *fp, unsigned char* data, int width, int height);
 
-    static const int imageWidth = 1226; //640;          ///<width of the image constant for Kinect
-    static const int imageHeight = 370; //480;         ///<height of the image constant for Kinect
+	static const int imageWidth = 1226; //640;         ///<width of the image constant for Kinect
+	static const int imageHeight = 370; //480;         ///<height of the image constant for Kinect
 
 	static SiftGPUWrapper* instance;    ///<singleton instance
-	SiftGPU* siftgpu;                           ///<siftgpu instance
-	SiftMatchGPU *matcher;                      ///<siftgpu matcher
-	bool isMatcherInitialized;                  ///<true, if matcher was initialized
-	bool error;                                 ///<error happened?
-	unsigned char* data;                        ///<image as texture
+	SiftGPU* siftgpu;                   ///<siftgpu instance
+	SiftMatchGPU *matcher;              ///<siftgpu matcher
+	bool isMatcherInitialized;          ///<true, if matcher was initialized
+	bool error;                         ///<error happened?
+	unsigned char* data;                ///<image as texture
 };
 
 #endif

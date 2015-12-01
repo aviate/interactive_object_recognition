@@ -1,13 +1,10 @@
-
-#include "ros/ros.h"
+#include <ros/ros.h>
 #include "template_matching/objects_database.h"
 #include "template_matching/probabilisticmatcher.h"
 
-
-
 int main (int argc, char** argv)
 {
-    ros::init (argc, argv, "template_matcher");
+    ros::init(argc, argv, "template_matcher");
 
     ros::NodeHandle nh("~") ;
 
@@ -28,7 +25,7 @@ int main (int argc, char** argv)
 
 //    database.printDatabases();
 
-    std::cout << "training ready" << std::endl;
+    ROS_INFO("training ready");
     ros::Rate loop_rate (30);
     while (ros::ok())
     {

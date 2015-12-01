@@ -4,6 +4,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <visualizer/Visualizer.h>
 #include <pcl/io/pcd_io.h>
+#include <sensor_msgs/PointCloud2.h>
 
 
 #include <dynamic_reconfigure/server.h>
@@ -19,8 +20,7 @@
 
 
 
-class CloudSaver
-{
+class CloudSaver {
 public:
     CloudSaver();
     void spinVisualizer();
@@ -38,15 +38,9 @@ private:
     ros::Subscriber cloud_subscriber_;
     Visualizer visualizer_;
     dynamic_reconfigure::Server<cloud_saver::SaverConfig> reconfig_srv_;
-    dynamic_reconfigure::Server<cloud_saver::SaverConfig>::CallbackType
-    reconfig_callback_;
+    dynamic_reconfigure::Server<cloud_saver::SaverConfig>::CallbackType reconfig_callback_;
     std::string cloud_name_;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr input_cloud_ptr_;
 
     int cloud_number_;
-
-
-
-
-
 };

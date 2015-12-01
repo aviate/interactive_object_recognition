@@ -3,23 +3,25 @@
 
 #include <pcl_typedefs/pcl_typedefs.h>
 #include <ros/ros.h>
+//#include <pcl/point_types.h>
+
+//typedef const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZRGB> > PointCloudConstPtr;
 
 class VisualizerImpl;
 class Visualizer
 {
 public:
+	Visualizer();
+	~Visualizer();
 
-    Visualizer();
-    ~Visualizer();
-
-    void addPointCloudColor(PointCloudPtr& input_cloud);
-    void addPointCloud(PointCloudPtr& input_cloud);
-    void spinOnce();
-    void removeAllClouds();
+	void addPointCloudColor(PointCloudConstPtr &input_cloud);
+	void addPointCloud(PointCloudConstPtr &input_cloud);
+	void spinOnce();
+	void removeAllClouds();
 
 
 private:
-    VisualizerImpl * Impl;
+	VisualizerImpl *Impl;
 };
 
 #endif // VISUALIZER_H

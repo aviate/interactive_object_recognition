@@ -1,5 +1,3 @@
-#include <cloud_saver/cloud_saver.h>
-
 /*
  * cloud_saver.cpp
  *
@@ -7,56 +5,65 @@
  *      Author: Karol Hausman
  */
 
+#include <pcl/conversions.h>
+#include <pcl_conversions/pcl_conversions.h>
 #include <pcl/filters/filter.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/point_types.h>
+
+#include <pcl_typedefs/pcl_typedefs.h>
+#include <cloud_saver/cloud_saver.h>
 
 CloudSaver::CloudSaver():
-    nh_ ("~/cloud_saver"),
-    visualizer_(),
-    reconfig_srv_(nh_),
-    input_cloud_ptr_ (new pcl::PointCloud<pcl::PointXYZRGB>),
-    cloud_number_(0)
+	nh_ ("~/cloud_saver"),
+	visualizer_(),
+	reconfig_srv_(nh_),
+	input_cloud_ptr_(new PointCloud),
+	cloud_number_(0)
 {
-    reconfig_callback_ = boost::bind (&CloudSaver::reconfigCallback, this, _1, _2);
-    reconfig_srv_.setCallback (reconfig_callback_);
+	reconfig_callback_ = boost::bind(&CloudSaver::reconfigCallback, this, _1, _2);
+	reconfig_srv_.setCallback(reconfig_callback_);
 
-
-
-    cloud_subscriber_ = nh_.subscribe("/camera/depth_registered/points", 1, &CloudSaver::cloudCallback, this);
+	cloud_subscriber_ = nh_.subscribe("/camera/depth_registered/points", 1, &CloudSaver::cloudCallback, this);
 }
 
-void CloudSaver::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg)
+void CloudSaver::cloudCallback(const sensor_msgs::PointCloud2Ptr& cloud_msg)
 {
-//    pcl::PointCloud<pcl::PointXYZRGB>::Ptr dense_cloud_color_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
-    input_cloud_ptr_.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::fromROSMsg(*cloud_msg,*input_cloud_ptr_);
-    visualizer_.removeAllClouds();
-    visualizer_.addPointCloudColor(input_cloud_ptr_);
-    visualizer_.spinOnce();
+	// convert sensor_msgs::PointCloud2Ptr to a pcl::PointCloud<pcl::pointXYZRGB>
+	pcl::PCLPointCloud2 pcl_pc;
+	pcl_conversions::toPCL(*cloud_msg, pcl_pc);
+
+	input_cloud_ptr_.reset(new PointCloud); // necessary?
+	pcl::fromPCLPointCloud2(pcl_pc, *input_cloud_ptr_);
+
+	PointCloudConstPtr cloud_const_ptr(input_cloud_ptr_);
+
+	visualizer_.removeAllClouds();
+	visualizer_.addPointCloudColor(cloud_const_ptr);
+	visualizer_.spinOnce();
 }
 
 
-void CloudSaver::reconfigCallback (cloud_saver::SaverConfig&config, uint32_t level)
+void CloudSaver::reconfigCallback (cloud_saver::SaverConfig &config, uint32_t level)
 {
-    cloud_name_ = config.cloud_name;
-    cloud_number_ ++;
+	cloud_name_ = config.cloud_name;
+	cloud_number_++;
 
-    if(config.save_cloud)
-    {        
-        std::stringstream ststream;
-        ststream << cloud_name_;
-        ststream << "/" << cloud_number_ << ".pcd";
+	if (config.save_cloud)
+	{
+		std::stringstream ststream;
+		ststream << cloud_name_;
+		ststream << "/" << cloud_number_ << ".pcd";
 
-        pcl::io::savePCDFile(ststream.str(), *input_cloud_ptr_);
-        config.save_cloud=false;
-    }
-
-
+		pcl::io::savePCDFile(ststream.str(), *input_cloud_ptr_);
+		config.save_cloud=false;
+	}
 }
 
 
 void CloudSaver::spinVisualizer()
 {
-    visualizer_.spinOnce();
+	visualizer_.spinOnce();
 }
 
 
@@ -92,10 +99,3 @@ void CloudSaver::spinVisualizer()
 //    ss_no_plane_image<<"/home/karol/ros_workspace/interactive_object_recognition/template_library/data/template" <<i<<"image_no_plane.jpg";
 
 //}
-
-
-
-
-
-
-

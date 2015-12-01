@@ -1,7 +1,5 @@
-
 #ifndef TEMPLATEMATCHING_H_
 #define TEMPLATEMATCHING_H_
-
 
 #include <ransac_waitinglist/ransac_transformation.h>
 #include <feature_cv_waitinglist/feature_matching.h>
@@ -9,7 +7,7 @@
 #include <template_library/template_library.h>
 
 
-#include "ros/ros.h"
+#include <ros/ros.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
@@ -20,8 +18,10 @@
 
 #include <pcl/segmentation/sac_segmentation.h>
 
-#include <pcl/ros/conversions.h>
+#include <pcl/conversions.h>
 #include <pcl/io/pcd_io.h>
+
+#include <sensor_msgs/PointCloud2.h>
 
 #include <dynamic_reconfigure/server.h>
 #include "../../cfg/cpp/template_matching/MatcherConfig.h"
@@ -40,77 +40,76 @@
 class TemplateMatcher
 {
 public:
-    TemplateMatcher(ros::NodeHandle nh);
-    FeatureMatching matcher_;
+	TemplateMatcher(ros::NodeHandle nh);
 
-    void printAllFramesBins();
+	void printAllFramesBins();
 
 
 private:
-    void reconfigCallback (template_matching::MatcherConfig &config, uint32_t level);
+	FeatureMatching matcher_;
 
-    void checkRecognition (std::string &object_name);
+	void reconfigCallback (template_matching::MatcherConfig &config, uint32_t level);
 
-    void extractTemplateFeatures (const std::vector<cv::Mat>& images, std::vector<std::vector<cv::KeyPoint> >& keypoints, std::vector<cv::Mat>& descriptors);
+	void checkRecognition (std::string &object_name);
 
-    void cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg);
+	void extractTemplateFeatures (const std::vector<cv::Mat>& images, std::vector<std::vector<cv::KeyPoint> >& keypoints, std::vector<cv::Mat>& descriptors);
 
-    void imageCallback (const sensor_msgs::ImageConstPtr & msg);
+	void cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg);
 
-    void publishTF(const Eigen::Matrix4f &transformation,const std::string &frame_id, const std::string &child_frame_id);
+	void imageCallback (const sensor_msgs::ImageConstPtr & msg);
 
-    void drawOnImage(const int &inliers, const int &matches, const double &frequency, cv::Mat &image);
+	void publishTF(const Eigen::Matrix4f &transformation,const std::string &frame_id, const std::string &child_frame_id);
 
-    void detectPlane(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud_in_ptr, pcl::ModelCoefficients &coefficients,
-                                    pcl::PointIndices &inliers);
+	void drawOnImage(const int &inliers, const int &matches, const double &frequency, cv::Mat &image);
 
-    void printBins();
+	void detectPlane(
+		const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud_in_ptr,
+		pcl::ModelCoefficients &coefficients,
+		pcl::PointIndices &inliers
+	);
 
-
-    RANSACTransformation ransac_transformer_;
-
-    image_transport::ImageTransport image_transport_;
-    image_transport::Publisher publisher_;
-    image_transport::Subscriber subscriber_;
-    ros::Subscriber cloud_subscriber_;
-
-    dynamic_reconfigure::Server<template_matching::MatcherConfig> reconfig_srv_;
-    dynamic_reconfigure::Server<template_matching::MatcherConfig>::CallbackType
-    reconfig_callback_;
-
-    ros::Time publish_time_;
-    cv::Mat template_image_;
-    std::vector <cv::Mat> template_images_;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud_ptr_;
-    pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr dense_cloud_ptr_;
-    TemplateLibrary template_library_;
-
-    cv::Point upper_left_;
-    cv::Point bottom_right_;
-    cv::Point search_upper_left_;
-    cv::Point search_bottom_right_;
-    bool first_one_;
-    cv::Mat image_four_;
-    std::vector<Template> library_templates_;
+	void printBins();
 
 
-    std::map<int, std::string> template_map_;
-    std::map<std::string, int > template_single_map_;
-    std::map<std::string, int > template_single_map_history_;
-    int sum_history_;
-    int absolute_matches_threshold_;
-    double single_ratio_threshold_;
-    double cumultative_ratio_threshold_;
+	RANSACTransformation ransac_transformer_;
 
+	image_transport::ImageTransport image_transport_;
+	image_transport::Publisher publisher_;
+	image_transport::Subscriber subscriber_;
+	ros::Subscriber cloud_subscriber_;
 
-    std::vector<std::vector<int> > template_bin_;
+	dynamic_reconfigure::Server<template_matching::MatcherConfig> reconfig_srv_;
+	dynamic_reconfigure::Server<template_matching::MatcherConfig>::CallbackType
+	reconfig_callback_;
 
-    std::vector<std::vector<cv::KeyPoint> > template_keypoints_;
-    std::vector<cv::Mat> template_descriptors_;
+	ros::Time publish_time_;
+	cv::Mat template_image_;
+	std::vector <cv::Mat> template_images_;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud_ptr_;
+	pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr dense_cloud_ptr_;
+	TemplateLibrary template_library_;
+
+	cv::Point upper_left_;
+	cv::Point bottom_right_;
+	cv::Point search_upper_left_;
+	cv::Point search_bottom_right_;
+	bool first_one_;
+	cv::Mat image_four_;
+	std::vector<Template> library_templates_;
+
+	std::map<int, std::string> template_map_;
+	std::map<std::string, int > template_single_map_;
+	std::map<std::string, int > template_single_map_history_;
+	int sum_history_;
+	int absolute_matches_threshold_;
+	double single_ratio_threshold_;
+	double cumulative_ratio_threshold_;
+
+	std::vector<std::vector<int> > template_bin_;
+
+	std::vector<std::vector<cv::KeyPoint> > template_keypoints_;
+	std::vector<cv::Mat> template_descriptors_;
 
 };
 
 #endif /* TEMPLATEMATCHING_H_ */
-
-
-

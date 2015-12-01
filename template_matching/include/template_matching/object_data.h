@@ -5,7 +5,6 @@
 #include <opencv2/nonfree/features2d.hpp>
 
 
-
 enum POSE
 {
     Z_DOWN,
@@ -18,18 +17,18 @@ enum POSE
 class ObjectData
 {
 public:
-
     ObjectData();
     ObjectData(const std::string& id, const POSE& pose, const cv::Mat& image, const std::vector <cv::KeyPoint>& keypoints, cv::Mat& descriptors);
-    virtual ~ObjectData(){}
+    virtual ~ObjectData() {}
     void train(){}
-    void getProbability(){}
-    void setDatabaseFeatures(const std::vector <cv::KeyPoint>& keypoints, const cv::Mat& descriptors);
-
+    void getProbability() {}
+    void setDatabaseFeatures(
+        const std::vector <cv::KeyPoint>& keypoints,
+        const cv::Mat& descriptors
+    );
 
 
 //private:
-
     POSE pose_;
     std::string id_;
     cv::Mat image_;
@@ -42,9 +41,6 @@ public:
 
 //Gaussians for matching scores
     std::vector <std::pair<double, double> > matching_gaussians_;
-
-
-
 };
 
 #endif // OBJECT_DATA_H

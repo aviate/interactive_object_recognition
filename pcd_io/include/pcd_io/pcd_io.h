@@ -26,23 +26,35 @@
 
 class PcdIO
 {
-  public:
-    PcdIO ();
-    virtual ~PcdIO ();
+public:
+	PcdIO();
+	virtual ~PcdIO();
 
-    void loadImagesFromDir (std::string directory, std::vector<cv::Mat>& images);
+	void loadImagesFromDir(
+		std::string directory,
+		std::vector<cv::Mat> &images
+	);
 
-    void loadPointcloudsFromDir (std::string directory, std::vector<pcl::PointCloud<pcl::PointXYZRGB> >& pointclouds);
+	void loadPointcloudsFromDir(
+		std::string directory,
+		std::vector<pcl::PointCloud<pcl::PointXYZRGB> > &pointclouds
+	);
 
-    void getDirectoryListWithExtension (const std::string& input_dir,
-       std::set<std::string>& file_list);
+	void getDirectoryListWithExtension(
+		const std::string &input_dir,
+		std::set<std::string> &file_list
+	);
 
-    void getDirectoryListWithExtension (const std::string& input_dir,
-       std::set<std::string>& file_list,std::set<std::string>& folder_list);
+	void getDirectoryListWithExtension(
+		const std::string &input_dir,
+		std::set<std::string> &file_list,
+		std::set<std::string> &folder_list
+	);
 
-    void getFileListWithExtension(const std::string& input_dir, const std::string& input_ext,
-        std::set<std::string>& file_list);
-  private:
-
+	void getFileListWithExtension(
+		const std::string &input_dir,
+		const std::string &input_ext,
+		std::set<std::string> &file_list
+	);
 };
 #endif // PCDIO_H_
