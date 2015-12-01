@@ -1,0 +1,7 @@
+\subsubsection parameters ROS parameters
+
+Reads and maintains the following parameters on the ROS server
+
+- \b "~cloud_name" : \b [str] A string parameter min: , default: Name of a pointcloud, max: 
+- \b "~save_cloud" : \b [bool] save_cloud min: False, default: False, max: True
+

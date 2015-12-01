@@ -1,0 +1,8 @@
+\subsubsection usage Usage
+\verbatim
+<node name="cloud_saver" pkg="cloud_saver" type="cloud_saver">
+  <param name="cloud_name" type="str" value="Name of a pointcloud" />
+  <param name="save_cloud" type="bool" value="False" />
+</node>
+\endverbatim
+

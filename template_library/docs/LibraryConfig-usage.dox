@@ -1,0 +1,8 @@
+\subsubsection usage Usage
+\verbatim
+<node name="template_library" pkg="template_library" type="template_library">
+  <param name="source_directory" type="str" value="$HOME/ros_fuerte_workspace/interactive_object_recognition/template_library/source/" />
+  <param name="data_directory" type="str" value="$HOME/ros_fuerte_workspace/interactive_object_recognition/template_library/data/" />
+</node>
+\endverbatim
+

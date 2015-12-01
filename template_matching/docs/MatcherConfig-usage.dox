@@ -1,0 +1,10 @@
+\subsubsection usage Usage
+\verbatim
+<node name="template_matching" pkg="template_matching" type="template_matching">
+  <param name="absolute_matches_threshold" type="int" value="30" />
+  <param name="single_ratio_threshold" type="double" value="0.85" />
+  <param name="cumulative_ratio_threshold" type="double" value="0.99" />
+  <param name="empty_history_buffer" type="bool" value="True" />
+</node>
+\endverbatim
+
