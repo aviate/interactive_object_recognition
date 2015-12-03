@@ -33,7 +33,9 @@ struct Template
 		cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
 		cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>)
 	{
-		cloud_with_inliers_ptr_.reset(new pcl::PointCloud<pcl::PointXYZLRegionF>(*cloud_with_inliers_ptr));
+		cloud_with_inliers_ptr_.reset(
+			new pcl::PointCloud<pcl::PointXYZLRegionF>(*cloud_with_inliers_ptr)
+		);
 		cloud_ptr_.reset(new pcl::PointCloud<pcl::PointXYZRGB>(*cloud_ptr));
 		image_ = image;
 		no_plane_image_ = no_plane_image;
@@ -51,14 +53,21 @@ struct Template
 		cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
 		cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>)
 	{
-		cloud_with_inliers_ptr_.reset(new pcl::PointCloud<pcl::PointXYZLRegionF>(*cloud_with_inliers_ptr));
+		cloud_with_inliers_ptr_.reset(
+			new pcl::PointCloud<pcl::PointXYZLRegionF>(*cloud_with_inliers_ptr)
+		);
 		cloud_ptr_.reset(new pcl::PointCloud<pcl::PointXYZRGB>(*cloud_ptr));
 		image_ = image;
 		no_plane_image_ = no_plane_image;
 		name_ = name;
 	}
 
-	Template(cv::Mat image, cv::Mat no_plane_image, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr, std::string name):
+	Template(
+		cv::Mat image,
+		cv::Mat no_plane_image,
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr,
+		std::string name
+	):
 		cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
 		cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>)
 	{
@@ -108,7 +117,6 @@ struct Template
 	{
 		name_ = name;
 	}
-
 
 	inline void setNoPlaneImage(const cv::Mat &no_plane_image)
 	{
@@ -236,4 +244,3 @@ private:
 };
 
 #endif /* TEMPLATELIBRARY_H_ */
-

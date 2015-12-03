@@ -1,2 +1,2 @@
-interactive_object_recognition
+Interactive Object Recognition
 ==============================

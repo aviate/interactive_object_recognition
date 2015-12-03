@@ -441,7 +441,7 @@ MatcherConfig::GroupDescription<MatcherConfig::DEFAULT, MatcherConfig> Default("
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
       __max__.single_ratio_threshold = 1.0;
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
-      __default__.single_ratio_threshold = 0.85;
+      __default__.single_ratio_threshold = 0.55;
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
       Default.abstract_parameters.push_back(MatcherConfig::AbstractParamDescriptionConstPtr(new MatcherConfig::ParamDescription<double>("single_ratio_threshold", "double", 0, "single_ratio_threshold", "", &MatcherConfig::single_ratio_threshold)));
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"

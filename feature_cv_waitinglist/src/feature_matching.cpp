@@ -127,9 +127,9 @@ void FeatureMatching::setParameter(
 		case 1: //bool
 			bool val;
 			if (param_value == "0" || param_value == "false" || param_value == "FALSE")
-				val = true;
-			else
 				val = false;
+			else
+				val = true;
 			cv_algorithm.set(param_name, val);
 			break;
 		case 2: //double
@@ -144,12 +144,6 @@ void FeatureMatching::reconfigCallback(
 	feature_cv_waitinglist::FeatureConfig &config,
 	uint32_t level)
 {
-	//  ROS_INFO("Reconfigure Request: %d %f %s %s %d",
-	//            config.int_param, config.double_param,
-	//            config.str_param.c_str(),
-	//            config.bool_param?"True":"False",
-	//            config.size);
-
 //  if ((config.feature_extractor == SIFTGPU_extractor && config.feature_detector != SIFTGPU_detector) ||
 //     (config.feature_extractor != SIFTGPU_extractor && config.feature_detector == SIFTGPU_detector))
 //  {
@@ -232,13 +226,16 @@ void FeatureMatching::reconfigCallback(
 	double_check_tracking_matches_     = config.double_check_tracking_matches;
 	reduce_search_area_                = config.reduce_search_area;
 	search_dist_                       = config.search_distance;
+
+	ROS_INFO_STREAM("RECONFIGURED FeatureMatching.");
+	ROS_ERROR_STREAM("RECONFIGURED FeatureMatching.");
 }
 
 cv::Mat FeatureMatching::convertToBlackWhite(const cv::Mat &input_image)
 {
 	cv::Mat output_image;
-	if (input_image.channels () > 1)
-		cvtColor (input_image, output_image, CV_BGR2GRAY);
+	if (input_image.channels() > 1)
+		cvtColor(input_image, output_image, CV_BGR2GRAY);
 	else
 		output_image = input_image.clone();
 	return output_image;
@@ -247,7 +244,7 @@ cv::Mat FeatureMatching::convertToBlackWhite(const cv::Mat &input_image)
 void convertDescriptors(const std::vector<float> &float_descriptors, cv::Mat &mat_descriptors)
 {
 	// create descriptor matrix
-	const int size = float_descriptors.size()/128;
+	const int size = float_descriptors.size() / 128;
 	mat_descriptors = cv::Mat(size, 128, CV_32F);
 	for (int y = 0; y < size; y++)
 	{
@@ -270,9 +267,6 @@ bool FeatureMatching::getDescriptorMatches(
 	cv::Mat search_descriptors;
 	cv::Mat search_bw_image = convertToBlackWhite(search_image);
 
-//  std::vector<cv::KeyPoint> template_keypoints_deb;
-//  cv::Mat template_descriptors_deb;
-//  cv::Mat template_bw_image = convertToBlackWhite(template_image);
 	if (feature_detector_ == SIFTGPU_detector || feature_extractor_ == SIFTGPU_extractor)
 	{
 		SIFTGPUGetFeatures(search_bw_image, search_keypoints, search_descriptors);
@@ -284,13 +278,14 @@ bool FeatureMatching::getDescriptorMatches(
 //     	detectFeatures (template_bw_image, template_keypoints_deb);
 //     	extractFeatures (template_bw_image, template_keypoints_deb, template_descriptors_deb);
 	}
-//	if ((search_keypoints.size() == 0) || (template_keypoints.size()==0))
-//	{
-//		ROS_WARN_STREAM("not enough keypoints to do matching");
-//		std::cout << "search keypoints size : " << search_keypoints.size() << std::endl;
-//		std::cout << "template keypoints size : " << template_keypoints.size() << std::endl;
-//		return false;
-//	}		
+
+	if ((search_keypoints.size() == 0) || (template_keypoints.size()==0))
+	{
+		ROS_WARN_STREAM("Not enough keypoints to perform matching.");
+		ROS_WARN_STREAM("Search keypoints size: " << search_keypoints.size());
+		ROS_WARN_STREAM("Template keypoints size: " << template_keypoints.size());
+		return false;
+	}		
 //	std::vector<cv::DMatch> matches;
 //	std::cerr<<"number of search keypoints: "<<search_keypoints.size()<<std::endl;
 //	std::cerr<<"number of search descriptors: "<<search_descriptors.rows<<std::endl;
@@ -299,49 +294,52 @@ bool FeatureMatching::getDescriptorMatches(
 	if (distinct_matches_)
 	{
 		std::vector<std::vector<cv::DMatch> > initial_matches;
-//     	if (feature_matcher_ptrs_[descriptor_matcher_]->empty())
-//     	{
-//     	    feature_matcher_ptrs_[descriptor_matcher_]->add(template_descriptors);
-//     	}
+		if (!feature_matcher_ptrs_[descriptor_matcher_]->empty())
+		{
+			feature_matcher_ptrs_[descriptor_matcher_]->add(template_descriptors);
+		}
 
-//     	feature_matcher_ptrs_[descriptor_matcher_]->radiusMatch (search_descriptors, initial_matches, (float)max_radius_search_dist_);
+		feature_matcher_ptrs_[descriptor_matcher_]->radiusMatch(
+			search_descriptors, initial_matches, (float)max_radius_search_dist_
+		);
+
+		ROS_INFO_STREAM("initial matches: " << initial_matches.size());
 
 		ROS_INFO_STREAM("size of template descriptors(rows): " << template_descriptors.rows);
 		ROS_INFO_STREAM("size of template descriptors(cols): " << template_descriptors.cols);
-		//cv::namedWindow("template_descriptors", cv::WINDOW_AUTOSIZE);// Create a window for display.
-		//cv::imshow("template_descriptors", template_descriptors);
-		//cv::waitKey(0);
+
 		ROS_INFO_STREAM("size of search descriptors(rows): "   << search_descriptors.rows);
 		ROS_INFO_STREAM("size of search descriptors(cols): "   << search_descriptors.cols);
-		//cv::namedWindow("search_descriptors", cv::WINDOW_AUTOSIZE);// Create a window for display.
-		//cv::imshow("search_descriptors", search_descriptors);
-		//cv::waitKey(0);
 
 		ROS_INFO_STREAM("Matcher nr: " << descriptor_matcher_);
 
-		feature_matcher_ptrs_[descriptor_matcher_]->match(
+		/*feature_matcher_ptrs_[descriptor_matcher_]->match(
 			template_descriptors,
 			search_descriptors,
 			matches
+		);*/
+
+		feature_matcher_ptrs_[descriptor_matcher_]->radiusMatch(
+			template_descriptors, search_descriptors,
+			initial_matches, (float)max_radius_search_dist_
 		);
 
-//     	std::cerr<<"number of initial matches: "<<initial_matches.size()<<std::endl;
-
-//     	feature_matcher_ptrs_[descriptor_matcher_]->radiusMatch (source_descriptors, target_descriptors, initial_matches, (float)max_radius_search_dist_);
-
-//     	filterMatches (initial_matches, matches);
+		filterMatches(initial_matches, matches);
+	}
+	else
+	{
+		this->findMatches(
+			template_keypoints,
+			template_descriptors,
+			search_keypoints,
+			search_descriptors,
+			search_bw_image.rows,
+			search_bw_image.cols,
+			matches
+		);
 	}
 
-
-	this->findMatches(template_keypoints,
-		template_descriptors,
-		search_keypoints,
-		search_descriptors,
-		search_bw_image.rows,
-		search_bw_image.cols,
-		matches
-	);
-	std::cerr << "number of matches: " << matches.size() << std::endl;
+	ROS_INFO_STREAM("final matches: " << matches.size());
 	cv::drawMatches(
 		template_image,
 		template_keypoints,
@@ -355,9 +353,10 @@ bool FeatureMatching::getDescriptorMatches(
 		cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS
 	);
 
-
 	// copy matches into 2 vectors
-	for (std::vector<cv::DMatch>::const_iterator itr = matches.begin(); itr != matches.end(); itr++)
+	for (std::vector<cv::DMatch>::const_iterator itr = matches.begin();
+		itr != matches.end();
+		itr++)
 	{
 		template_match_points.push_back(template_keypoints[itr->queryIdx].pt);
 		search_match_points.push_back(search_keypoints[itr->trainIdx].pt);
@@ -401,8 +400,7 @@ bool FeatureMatching::getMatches(
 	template_bw_image = convertToBlackWhite(template_image);
 	search_bw_image = convertToBlackWhite(search_image);
 
-	//get features
-
+	// get features
 	if (feature_detector_ == SIFTGPU_detector || feature_extractor_ == SIFTGPU_extractor)
 	{
 		SIFTGPUGetFeatures(template_bw_image, template_keypoints, template_descriptors);
@@ -422,24 +420,26 @@ bool FeatureMatching::getMatches(
 		return false;
 	}
 
-	//do matching
+	// do matching
 	std::vector<cv::DMatch> good_matches;
 	std::vector<cv::DMatch> matches;
 	std::vector<uint> template_new_to_old_correspondences, search_new_to_old_correspondences;
 //  this->findMatches (template_descriptors, search_descriptors, good_matches);
 	this->findMatches(
-		template_keypoints, template_descriptors, search_keypoints,
-		search_descriptors, search_bw_image.rows, search_bw_image.cols,
+		template_keypoints, template_descriptors,
+		search_keypoints, search_descriptors,
+		search_bw_image.rows, search_bw_image.cols,
 		good_matches
 	);
-
 
 	// filter matches
 	bool reset_tracking = (int)prev_matches_.size() < min_tracking_matches_;
 	if (horizontal_matches_ && tracking_matches_ && !reset_tracking)
 	{
 		std::vector<cv::DMatch> horizontal_matches;
-		getHorizontalMatches(template_keypoints, search_keypoints, good_matches, horizontal_matches);
+		getHorizontalMatches(
+			template_keypoints, search_keypoints, good_matches, horizontal_matches
+		);
 		filterMatchesUsingTrackingBestMatch(
 			template_keypoints, search_keypoints,
 			template_descriptors, search_descriptors,
@@ -447,7 +447,9 @@ bool FeatureMatching::getMatches(
 			template_new_to_old_correspondences, search_new_to_old_correspondences
 		);
 		if (timing_debug_)
-			ROS_INFO_STREAM("Found " << matches.size() << " matches after applying horizontal filter and tracking matches");
+			ROS_INFO_STREAM(
+				"Found " << matches.size() << " matches after applying horizontal filter and tracking matches"
+			);
 	}
 	else if ((tracking_matches_) && !reset_tracking)  // only do this when previous matches available
 	{
@@ -458,19 +460,25 @@ bool FeatureMatching::getMatches(
 			template_new_to_old_correspondences, search_new_to_old_correspondences
 		);
 		if (timing_debug_)
-			ROS_INFO_STREAM("Found " << matches.size() << " matches after applying tracking matches filter");
+			ROS_INFO_STREAM(
+				"Found " << matches.size() << " matches after applying tracking matches filter"
+			);
 	}
 	else if (horizontal_matches_)
 	{
 		getHorizontalMatches(template_keypoints, search_keypoints, good_matches, matches);
 		if (timing_debug_)
-			ROS_INFO_STREAM("Found " << matches.size() << " matches after applying horizontal filter");
+			ROS_INFO_STREAM(
+				"Found " << matches.size() << " matches after applying horizontal filter"
+			);
 	}
 	else
 	{
 		matches = good_matches;
 		if (timing_debug_)
-			ROS_INFO_STREAM("Found " << matches.size() << " matches after applying standard filter");
+			ROS_INFO_STREAM(
+				"Found " << matches.size() << " matches after applying standard filter"
+			);
 	}
 
 	end_processing_time_ = ros::Time::now();
@@ -488,7 +496,9 @@ bool FeatureMatching::getMatches(
 
 	if (tracking_matches_)
 	{
-		for (uint i = 0; (i < prev_matches_.size()) && (i < matches.size()) && !reset_tracking; i++)
+		for (uint i = 0;
+			(i < prev_matches_.size()) && (i < matches.size()) && !reset_tracking;
+			i++)
 		{
 			cv::line(
 				matches_overlay,
@@ -642,8 +652,10 @@ void FeatureMatching::filterMatches(
 	std::vector<std::vector<cv::DMatch> > &all_matches,
 	std::vector<cv::DMatch> &good_matches)
 {
-	for (uint i = 0; i < all_matches.size(); i++) {
-		if (all_matches[i].size() > 1) {
+	for (uint i = 0; i < all_matches.size(); i++)
+	{
+		if (all_matches[i].size() > 1)
+		{
 			if (all_matches[i][0].distance / all_matches[i][1].distance < matching_distance_ratio_threshold_)
 				good_matches.push_back(all_matches[i][0]);
 		}
@@ -656,7 +668,8 @@ void FeatureMatching::getHorizontalMatches(
 	const std::vector<cv::DMatch> &matches,
 	std::vector<cv::DMatch> &horizontal_matches)
 {
-	for (uint i = 0; i < matches.size(); i++) {
+	for (uint i = 0; i < matches.size(); i++)
+	{
 		const cv::Point2f &template_pt = template_keypoints[matches[i].queryIdx].pt;
 		const cv::Point2f &search_pt = search_keypoints[matches[i].trainIdx].pt;
 		if (fabs(template_pt.y - search_pt.y) <= horizontal_threshold_)
@@ -682,7 +695,9 @@ void FeatureMatching::filterMatchesUsingTracking(
 		const cv::Point2f &template_pt = template_keypoints[itr_t1->queryIdx].pt;
 		const cv::Point2f &search_pt = search_keypoints[itr_t1->trainIdx].pt;
 		// find the point in the previous frame
-		for (std::vector<cv::DMatch>::const_iterator itr_t0 = prev_matches_.begin(); itr_t0 != prev_matches_.end(); itr_t0++)
+		for (std::vector<cv::DMatch>::const_iterator itr_t0 = prev_matches_.begin();
+			itr_t0 != prev_matches_.end();
+			itr_t0++)
 		{
 			const cv::Point2f &prev_template_pt = prev_template_keypoints_[itr_t0->queryIdx].pt;
 			const cv::Point2f &prev_search_pt = prev_search_keypoints_[itr_t0->trainIdx].pt;
@@ -709,7 +724,9 @@ void FeatureMatching::filterMatchesUsingTrackingNN(
 	std::vector<uint> &search_new_to_prev_correspondence)
 {
 	std::vector<double> min_point_distance_vec;
-	for (std::vector<cv::DMatch>::const_iterator itr_t1 = matches.begin(); itr_t1 != matches.end(); itr_t1++)
+	for (std::vector<cv::DMatch>::const_iterator itr_t1 = matches.begin();
+		itr_t1 != matches.end();
+		itr_t1++)
 	{
 		const cv::Point2f &template_pt = template_keypoints[itr_t1->queryIdx].pt;
 		const cv::Point2f &search_pt = search_keypoints[itr_t1->trainIdx].pt;
@@ -717,7 +734,9 @@ void FeatureMatching::filterMatchesUsingTrackingNN(
 		// find the point in the previous frame
 		double min_point_distance = std::numeric_limits<double>::max();
 		std::vector<cv::DMatch>::const_iterator best_match_itr;
-		for (std::vector<cv::DMatch>::const_iterator itr_t0 = prev_matches_.begin(); itr_t0 != prev_matches_.end(); itr_t0++)
+		for (std::vector<cv::DMatch>::const_iterator itr_t0 = prev_matches_.begin();
+			itr_t0 != prev_matches_.end();
+			itr_t0++)
 		{
 			const cv::Point2f &prev_template_pt = prev_template_keypoints_[itr_t0->queryIdx].pt;
 			const cv::Point2f &prev_search_pt = prev_search_keypoints_[itr_t0->trainIdx].pt;
@@ -769,7 +788,9 @@ void FeatureMatching::filterMatchesUsingTrackingBestMatch(
 	std::vector<uint> &search_new_to_prev_correspondence)
 {
 	std::vector<double> distances;
-	for (std::vector<cv::DMatch>::const_iterator itr_t1 = matches.begin(); itr_t1 != matches.end(); itr_t1++)
+	for (std::vector<cv::DMatch>::const_iterator itr_t1 = matches.begin();
+		itr_t1 != matches.end();
+		itr_t1++)
 	{
 		//std::vector<cv::KeyPoint> prev_search_keypoints, prev_template_keypoints;
 		std::vector<int> prev_template_descriptor_mapping, prev_search_descriptor_mapping;
@@ -780,7 +801,9 @@ void FeatureMatching::filterMatchesUsingTrackingBestMatch(
 
 		// find the point in the previous frame
 		std::vector<double> local_distances;
-		for (std::vector<cv::DMatch>::const_iterator itr_t0 = prev_matches_.begin(); itr_t0 != prev_matches_.end(); itr_t0++)
+		for (std::vector<cv::DMatch>::const_iterator itr_t0 = prev_matches_.begin();
+			itr_t0 != prev_matches_.end();
+			itr_t0++)
 		{
 			const cv::Point2f &prev_template_pt = prev_template_keypoints_[itr_t0->queryIdx].pt;
 			const cv::Point2f &prev_search_pt = prev_search_keypoints_[itr_t0->trainIdx].pt;
@@ -794,8 +817,12 @@ void FeatureMatching::filterMatchesUsingTrackingBestMatch(
 				continue;
 
 			// store prev_template_descript and prev_search_descript at these indices to a new mat
-			prev_local_template_descriptors.push_back(prev_template_descriptors_.row(itr_t0->queryIdx));
-			prev_local_search_descriptors.push_back(prev_search_descriptors_.row(itr_t0->trainIdx));
+			prev_local_template_descriptors.push_back(
+				prev_template_descriptors_.row(itr_t0->queryIdx)
+			);
+			prev_local_search_descriptors.push_back(
+				prev_search_descriptors_.row(itr_t0->trainIdx)
+			);
 			// remember the mapping between new (prev_local_descriptors) mat and prev_descriptors_
 			prev_template_descriptor_mapping.push_back(itr_t0->queryIdx);
 			prev_search_descriptor_mapping.push_back(itr_t0->trainIdx);
@@ -823,12 +850,17 @@ void FeatureMatching::filterMatchesUsingTrackingBestMatch(
 			if (point_template_matches[0].trainIdx == point_search_matches[0].trainIdx || !double_check_tracking_matches_)
 			{
 				good_matches.push_back(*itr_t1);
-				template_new_to_prev_correspondence.push_back(prev_template_descriptor_mapping[point_template_matches[0].trainIdx]);
-				search_new_to_prev_correspondence.push_back(prev_search_descriptor_mapping[point_template_matches[0].trainIdx]);
+				template_new_to_prev_correspondence.push_back(
+					prev_template_descriptor_mapping[point_template_matches[0].trainIdx]
+				);
+				search_new_to_prev_correspondence.push_back(
+					prev_search_descriptor_mapping[point_template_matches[0].trainIdx]
+				);
 				distances.push_back(local_distances[point_template_matches[0].trainIdx]);
 			}
 		}
 	}
+
 	if (outlier_removal_) {
 		removeOutliers(
 			good_matches,
@@ -845,7 +877,7 @@ void FeatureMatching::removeOutliers(
 	std::vector<uint> &template_new_to_prev_correspondence,
 	std::vector<uint> &search_new_to_prev_correspondence)
 {
-	double avg_dist=0.0;
+	double avg_dist = 0.0;
 	for (std::vector<double>::iterator itr = distances.begin(); itr < distances.end(); itr++)
 	{
 		avg_dist += *itr;

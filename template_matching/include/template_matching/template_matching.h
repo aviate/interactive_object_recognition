@@ -3,7 +3,6 @@
 
 #include <ransac_waitinglist/ransac_transformation.h>
 #include <feature_cv_waitinglist/feature_matching.h>
-//#include <dense_reconstruction/DenseReconstruction.h>
 #include <template_library/template_library.h>
 
 
@@ -44,23 +43,44 @@ public:
 
 	void printAllFramesBins();
 
-
 private:
 	FeatureMatching matcher_;
 
-	void reconfigCallback (template_matching::MatcherConfig &config, uint32_t level);
+	void reconfigCallback(
+		template_matching::MatcherConfig &config,
+		uint32_t level
+	);
 
-	void checkRecognition (std::string &object_name);
+	void checkRecognition(
+		std::string &object_name
+	);
 
-	void extractTemplateFeatures (const std::vector<cv::Mat>& images, std::vector<std::vector<cv::KeyPoint> >& keypoints, std::vector<cv::Mat>& descriptors);
+	void extractTemplateFeatures(
+		const std::vector<cv::Mat> &images,
+		std::vector<std::vector<cv::KeyPoint> > &keypoints,
+		std::vector<cv::Mat> &descriptors
+	);
 
-	void cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg);
+	void cloudCallback(
+		const sensor_msgs::PointCloud2Ptr &cloud_msg
+	);
 
-	void imageCallback (const sensor_msgs::ImageConstPtr & msg);
+	void imageCallback(
+		const sensor_msgs::ImageConstPtr &msg
+	);
 
-	void publishTF(const Eigen::Matrix4f &transformation,const std::string &frame_id, const std::string &child_frame_id);
+	void publishTF(
+		const Eigen::Matrix4f &transformation,
+		const std::string &frame_id,
+		const std::string &child_frame_id
+	);
 
-	void drawOnImage(const int &inliers, const int &matches, const double &frequency, cv::Mat &image);
+	void drawOnImage(
+		const int &inliers,
+		const int &matches,
+		const double &frequency,
+		cv::Mat &image
+	);
 
 	void detectPlane(
 		const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud_in_ptr,
@@ -74,42 +94,42 @@ private:
 	RANSACTransformation ransac_transformer_;
 
 	image_transport::ImageTransport image_transport_;
-	image_transport::Publisher publisher_;
-	image_transport::Subscriber subscriber_;
-	ros::Subscriber cloud_subscriber_;
+	image_transport::Publisher      publisher_;
+	image_transport::Subscriber     subscriber_;
+	ros::Subscriber                 cloud_subscriber_;
 
-	dynamic_reconfigure::Server<template_matching::MatcherConfig> reconfig_srv_;
+	dynamic_reconfigure::Server<template_matching::MatcherConfig>
+		reconfig_srv_;
 	dynamic_reconfigure::Server<template_matching::MatcherConfig>::CallbackType
-	reconfig_callback_;
+		reconfig_callback_;
 
-	ros::Time publish_time_;
-	cv::Mat template_image_;
-	std::vector <cv::Mat> template_images_;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud_ptr_;
+	ros::Time                                   publish_time_;
+	cv::Mat                                     template_image_;
+	std::vector<cv::Mat>                        template_images_;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr         current_cloud_ptr_;
 	pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr dense_cloud_ptr_;
-	TemplateLibrary template_library_;
+	TemplateLibrary                             template_library_;
 
-	cv::Point upper_left_;
-	cv::Point bottom_right_;
-	cv::Point search_upper_left_;
-	cv::Point search_bottom_right_;
-	bool first_one_;
-	cv::Mat image_four_;
-	std::vector<Template> library_templates_;
+	cv::Point                  upper_left_;
+	cv::Point                  bottom_right_;
+	cv::Point                  search_upper_left_;
+	cv::Point                  search_bottom_right_;
+	bool                       first_one_;
+	cv::Mat                    image_four_;
+	std::vector<Template>      library_templates_;
 
 	std::map<int, std::string> template_map_;
-	std::map<std::string, int > template_single_map_;
-	std::map<std::string, int > template_single_map_history_;
-	int sum_history_;
-	int absolute_matches_threshold_;
-	double single_ratio_threshold_;
-	double cumulative_ratio_threshold_;
+	std::map<std::string,int>  template_single_map_;
+	std::map<std::string,int>  template_single_map_history_;
+	int                        sum_history_;
+	int                        absolute_matches_threshold_;
+	double                     single_ratio_threshold_;
+	double                     cumulative_ratio_threshold_;
 
 	std::vector<std::vector<int> > template_bin_;
 
 	std::vector<std::vector<cv::KeyPoint> > template_keypoints_;
-	std::vector<cv::Mat> template_descriptors_;
-
+	std::vector<cv::Mat>                    template_descriptors_;
 };
 
 #endif /* TEMPLATEMATCHING_H_ */

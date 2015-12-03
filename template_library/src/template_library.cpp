@@ -20,8 +20,6 @@ TemplateLibrary::TemplateLibrary():
 	reconfig_srv_.setCallback(reconfig_callback_);
 //    filenames_.push_back("/home/karol/Desktop/template2.pcd");
 
-//    data_directory_="/home/karol/ros_workspace/interactive_object_recognition/template_library/data/";
-//    source_directory_="/home/karol/ros_workspace/interactive_object_recognition/template_library/source";
 	std::string package_path = ros::package::getPath("template_library");
 	source_directory_        = package_path + "/source/";
 	data_directory_          = package_path + "/data/";
@@ -47,14 +45,14 @@ void TemplateLibrary::loadClouds(const std::string &source_directory)
 	names_.clear();
 
 	std::set<std::string> file_names;
-	std::set<std::pair<std::string,std::string> > directory_names_full_list;
+	std::set<std::pair<std::string, std::string> > directory_names_full_list;
 	pcd_io_.getDirectoryListWithExtension(source_directory, file_names);
 	for (std::set<std::string>::iterator itr = file_names.begin();
 		itr != file_names.end();
 		itr++)
 	{
 		std::set<std::string> directory_names;
-		std::set<std::pair<std::string,std::string> > directory_names_pair;
+		std::set<std::pair<std::string, std::string> > directory_names_pair;
 
 		namespace fs = boost::filesystem;
 
@@ -187,7 +185,7 @@ std::vector<Template> TemplateLibrary::loadTemplates(const std::string &type)
 		itr++)
 	{
 		namespace fs = boost::filesystem;
-		fs::path path (*itr);
+		fs::path path(*itr);
 
 		ROS_DEBUG_STREAM("folder: " << path.stem());
 
@@ -303,7 +301,7 @@ cv::Mat TemplateLibrary::restoreCVMatNoPlaneFromPointCloud(
 		for (uint cols = 0; cols < cloud_in.width; ++cols)
 		{                
 			if (std::isnan(cloud_in.at(cols, rows).x)
-				&& (static_cast<int>(cols) < border_no_nan_width
+				&& (   static_cast<int>(cols) < border_no_nan_width
 					|| static_cast<int>(cols) > cloud_in.width-border_no_nan_width
 					|| static_cast<int>(rows) < border_no_nan_height
 					|| static_cast<int>(rows) > cloud_in.height-border_no_nan_height)) 
@@ -365,7 +363,7 @@ void TemplateLibrary::generateTemplateDataEuclidean(
 
 //    boost::shared_ptr<std::vector<int> > indices(new std::vector<int>);
 //    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_temp(new pcl::PointCloud<pcl::PointXYZRGB>);
-//    pcl::removeNaNFromPointCloud(*cloud_input,*cloud_temp,*indices);
+//    pcl::removeNaNFromPointCloud(*cloud_input, *cloud_temp, *indices);
 
 	planeSegmentation(cloud_input, coefficients, *plane_inliers);
 	generatePlaneOutliers(*plane_inliers, cloud_input->size(), *plane_outliers);

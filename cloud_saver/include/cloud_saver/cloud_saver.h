@@ -18,21 +18,36 @@
  *      Author: Karol Hausman
  */
 
+/*
+ * Cloud Saver saves a PCD file once the save_cloud
+ * parameter has been set to true using dynamic reconfigure.
+ */
 
-
-class CloudSaver {
+class CloudSaver
+{
 public:
     CloudSaver();
     void spinVisualizer();
 
-
-
 private:
-    void reconfigCallback (cloud_saver::SaverConfig&config, uint32_t level);
-    void cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg);
-//    void saveTemplates();
-    void generateNames(const int &i,std::stringstream &ss_image,std::stringstream &ss_no_plane_image,std::stringstream &ss_cloud_rgb,std::stringstream &ss_cloud_inliers);
+    void reconfigCallback(
+        cloud_saver::SaverConfig &config,
+        uint32_t level
+    );
 
+    void cloudCallback(
+        const sensor_msgs::PointCloud2Ptr& cloud_msg
+    );
+
+//    void saveTemplates();
+
+    void generateNames(
+        const int &i,
+        std::stringstream &ss_image,
+        std::stringstream &ss_no_plane_image,
+        std::stringstream &ss_cloud_rgb,
+        std::stringstream &ss_cloud_inliers
+    );
 
     ros::NodeHandle nh_;
     ros::Subscriber cloud_subscriber_;

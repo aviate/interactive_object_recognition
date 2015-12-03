@@ -3,7 +3,7 @@
 Reads and maintains the following parameters on the ROS server
 
 - \b "~absolute_matches_threshold" : \b [int] absolute_matches_threshold min: 1, default: 30, max: 1000
-- \b "~single_ratio_threshold" : \b [double] single_ratio_threshold min: 0.0, default: 0.85, max: 1.0
+- \b "~single_ratio_threshold" : \b [double] single_ratio_threshold min: 0.0, default: 0.55, max: 1.0
 - \b "~cumulative_ratio_threshold" : \b [double] cumulative_ratio_threshold min: 0.0, default: 0.99, max: 1.0
 - \b "~empty_history_buffer" : \b [bool] empty_history_buffer min: False, default: True, max: True
 

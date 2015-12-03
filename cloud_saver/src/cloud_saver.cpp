@@ -11,6 +11,8 @@
 #include <pcl/PCLPointCloud2.h>
 #include <pcl/point_types.h>
 
+#include <boost/filesystem.hpp>
+
 #include <pcl_typedefs/pcl_typedefs.h>
 #include <cloud_saver/cloud_saver.h>
 
@@ -27,7 +29,7 @@ CloudSaver::CloudSaver():
 	cloud_subscriber_ = nh_.subscribe("/camera/depth_registered/points", 1, &CloudSaver::cloudCallback, this);
 }
 
-void CloudSaver::cloudCallback(const sensor_msgs::PointCloud2Ptr& cloud_msg)
+void CloudSaver::cloudCallback(const sensor_msgs::PointCloud2Ptr &cloud_msg)
 {
 	// convert sensor_msgs::PointCloud2Ptr to a pcl::PointCloud<pcl::pointXYZRGB>
 	pcl::PCLPointCloud2 pcl_pc;
@@ -43,7 +45,6 @@ void CloudSaver::cloudCallback(const sensor_msgs::PointCloud2Ptr& cloud_msg)
 	visualizer_.spinOnce();
 }
 
-
 void CloudSaver::reconfigCallback (cloud_saver::SaverConfig &config, uint32_t level)
 {
 	cloud_name_ = config.cloud_name;
@@ -52,20 +53,31 @@ void CloudSaver::reconfigCallback (cloud_saver::SaverConfig &config, uint32_t le
 	if (config.save_cloud)
 	{
 		std::stringstream ststream;
-		ststream << cloud_name_;
-		ststream << "/" << cloud_number_ << ".pcd";
+		ststream << cloud_name_ << "/";
+
+		// create directory if necessary
+		boost::system::error_code error;
+		boost::filesystem::create_directories(ststream.str(), error);
+		if (error) 
+		{
+			ROS_ERROR_STREAM(
+				"Error " << error
+				<< ": Could not create directory " << ststream.str()
+			);
+		}
+
+		ststream << cloud_number_ << ".pcd";
 
 		pcl::io::savePCDFile(ststream.str(), *input_cloud_ptr_);
-		config.save_cloud=false;
+		config.save_cloud = false;
+		ROS_INFO_STREAM("Cloud has been saved successfully at " << ststream.str());
 	}
 }
-
 
 void CloudSaver::spinVisualizer()
 {
 	visualizer_.spinOnce();
 }
-
 
 //void CloudSaver::saveTemplates()
 //{

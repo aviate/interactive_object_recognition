@@ -32,48 +32,47 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
 	current_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZ>),
 	dense_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),    
 	template_library_()
-
 {
 	first_one_ = true;
 	publish_time_ = ros::Time::now();
 //    template_image_ = cv::Mat (cvLoadImage (template_filename.c_str (), CV_LOAD_IMAGE_COLOR));
 	//template_library_.generateTemplateData();
 	//template_library_.loadTemplates();
-//    template_image_ =template_library_.loadTemplates()[0].no_plane_image_;
+//    template_image_ = template_library_.loadTemplates()[0].no_plane_image_;
 
-//    template_image_ =template_library_.loadTemplates()[0].image_;
-//    library_templates_ = template_library_.loadTemplates();
+//    template_image_ = template_library_.loadTemplates()[0].image_;
+	library_templates_ = template_library_.loadTemplates("training");
 
-//    int i = 0;
-//    std::vector<std::string> names;
-//    for (std::vector<Template>::iterator it=library_templates_.begin(); it!=library_templates_.end(); it++)
-//    {
-//        template_images_.push_back(it->image_);
+	ROS_INFO_STREAM(library_templates_.size() << " templates were loaded.");
 
-//        std::vector<int> init_vector;
-//        init_vector.push_back(0);
+	int i = 0;
+	std::vector<std::string> names;
+	for (std::vector<Template>::iterator it = library_templates_.begin();
+		it != library_templates_.end();
+		it++, i++)
+	{
+		template_images_.push_back(it->image_);
 
+		std::vector<int> init_vector;
+		init_vector.push_back(0);
 
-//        template_bin_.push_back(init_vector);
-//        template_map_.insert(std::pair<int, std::string> (i, it->name_));
-////        names.push_back(it->name_);
+		template_bin_.push_back(init_vector);
+		template_map_.insert(std::pair<int, std::string>(i, it->name_));
+//        names.push_back(it->name_);
 
-//        template_single_map_.insert(std::pair<std::string,int>(it->name_,0));
-//        template_single_map_history_.insert(std::pair<std::string,int>(it->name_,0));
+		template_single_map_.insert(std::pair<std::string, int>(it->name_, 0));
+		template_single_map_history_.insert(std::pair<std::string, int>(it->name_, 0));
+	}
 
-
-//        i++;
-
-//    }
-//    sum_history_=0;
-//    absolute_matches_threshold_ = 30;
-//    single_ratio_threshold_ = 0.85;
-//    cumulative_ratio_threshold_ = 0.99;
+	sum_history_                = 0;
+	absolute_matches_threshold_ = 30;
+	single_ratio_threshold_     = 0.85;
+	cumulative_ratio_threshold_ = 0.99;
 
 	reconfig_callback_ = boost::bind(&TemplateMatcher::reconfigCallback, this, _1, _2);
 	reconfig_srv_.setCallback(reconfig_callback_);
 
-//    extractTemplateFeatures(template_images_, template_keypoints_, template_descriptors_);
+	extractTemplateFeatures(template_images_, template_keypoints_, template_descriptors_);
 
 //    subscriber_ = image_transport_.subscribe(subscribe_topic, 1, &TemplateMatcher::imageCallback, this);
 	cloud_subscriber_ = nh.subscribe(subscribe_topic, 1, &TemplateMatcher::cloudCallback, this);
@@ -90,7 +89,7 @@ void TemplateMatcher::reconfigCallback(
 	uint32_t level)
 {
 	absolute_matches_threshold_ = config.absolute_matches_threshold;
-	single_ratio_threshold_ = config.single_ratio_threshold;
+	single_ratio_threshold_     = config.single_ratio_threshold;
 	cumulative_ratio_threshold_ = config.cumulative_ratio_threshold;
 
 	if (config.empty_history_buffer)
@@ -105,6 +104,8 @@ void TemplateMatcher::reconfigCallback(
 
 		config.empty_history_buffer = false;
 	}
+
+	ROS_INFO_STREAM("RECONFIGURED TemplateMatcher");
 }
 
 void TemplateMatcher::detectPlane(
@@ -142,14 +143,13 @@ void TemplateMatcher::printAllFramesBins()
 		std::stringstream stream;
 		stream << template_map_[i] << " : ";
 
-		for (uint j=0; j < template_bin_[i].size(); j++)
+		for (uint j = 0; j < template_bin_[i].size(); j++)
 		{
 			stream << ", " << template_bin_[i][j] << ", ";
 		}
 
 		ROS_INFO_STREAM(stream.str());
 	}
-
 }
 
 void TemplateMatcher::checkRecognition(std::string &object_name)
@@ -163,7 +163,7 @@ void TemplateMatcher::checkRecognition(std::string &object_name)
 	std::string name_single_ratio;
 	std::string name_cumulative_ratio;
 
-	//not neccessary - emptying the history
+	// not neccessary - emptying the history
 	for (std::map<std::string, int>::iterator it = template_single_map_.begin();
 		it != template_single_map_.end();
 		it++)
@@ -173,8 +173,8 @@ void TemplateMatcher::checkRecognition(std::string &object_name)
 
 	for (uint i = 0; i < template_bin_.size(); i++)
 	{
-		template_single_map_ [template_map_[i]] += template_bin_[i].back();
-		template_single_map_history_ [template_map_[i]] += template_bin_[i].back();
+		template_single_map_[template_map_[i]] += template_bin_[i].back();
+		template_single_map_history_[template_map_[i]] += template_bin_[i].back();
 
 		sum += template_bin_[i].back();
 
@@ -233,7 +233,7 @@ void TemplateMatcher::checkRecognition(std::string &object_name)
 		}
 	}
 
-	//final check
+	// final check
 	if (absolute_threshold_check && single_ratio_check)
 	{
 		if (name_absolute == name_single_ratio)
@@ -308,28 +308,34 @@ void TemplateMatcher::cloudCallback(const sensor_msgs::PointCloud2Ptr &cloud_msg
 	pcl::copyPointCloud(*dense_cloud_color_ptr, *current_cloud_ptr_);
 	cv::Mat search_image = template_library_.restoreCVMatFromPointCloud(dense_cloud_color_ptr);
 
-//    cv::Mat img_matches;
-//    std::vector<cv::Point2f> template_points,search_points;
-//    uint max_matches = 0;
-
-//    for (uint i = 0; i<template_images_.size(); i++)
-//    {
-
+	cv::Mat img_matches;
+	std::vector<cv::Point2f> template_points, search_points;
+	uint max_matches = 0;
+	for (uint i = 0; i < template_images_.size(); i++)
+	{
 		cv::Mat temp_img_matches;
 		std::vector<cv::Point2f> temp_template_points, temp_search_points;
 		std::vector<cv::DMatch> temp_matches;
 
+		matcher_.getDescriptorMatches(
+			template_images_[i],
+			search_image,
+			template_keypoints_[i],
+			template_descriptors_[i],
+			temp_img_matches,
+			temp_template_points,
+			temp_search_points,
+			temp_matches
+		);
 
-//        matcher_.getDescriptorMatches(template_images_[1], template_images_[1], template_keypoints_, template_descriptors_, temp_img_matches, temp_template_points, temp_search_points, temp_matches);
-
-		cv::Mat database_image = cv::imread(db_image_filename, 1);
+		//cv::Mat database_image = cv::imread(db_image_filename, 1);
 		//cv::Mat search_image = cv::imread(search_image_filename, 1);
 
-		//cv::namedWindow("Search Image", cv::WINDOW_AUTOSIZE);// Create a window for display.
-		//cv::imshow("Search Image", search_image);
+		cv::namedWindow("Drawn Image", cv::WINDOW_AUTOSIZE);// Create a window for display.
+		cv::imshow("Drawn Image", temp_img_matches);
+		cv::waitKey(0);
 
-		std::vector<cv::KeyPoint> temp_keypoints;
-		cv::Mat temp_descriptors;
+		/*std::vector<cv::KeyPoint> temp_keypoints;
 		matcher_.getFeatures(database_image, temp_keypoints, temp_descriptors);
 
 		matcher_.getDescriptorMatches(
@@ -338,30 +344,29 @@ void TemplateMatcher::cloudCallback(const sensor_msgs::PointCloud2Ptr &cloud_msg
 		);
 
 		ROS_INFO_STREAM("temp_template_points: " << temp_template_points.size());
-		ROS_INFO_STREAM("temp_search_points: " << temp_search_points.size());
-		ROS_INFO_STREAM("temp_matches: " << temp_matches.size());
+		ROS_INFO_STREAM("temp_search_points: "   << temp_search_points.size());
+		ROS_INFO_STREAM("temp_matches: "         << temp_matches.size());*/
 
-//        matcher_.getMatches(database_image, search_image, temp_img_matches, temp_template_points, temp_search_points);
+		//matcher_.getMatches(database_image, search_image, temp_img_matches, temp_template_points, temp_search_points);
 
-//        template_bin_[i].push_back(temp_template_points.size());
+		template_bin_[i].push_back(temp_template_points.size());
+		if (temp_template_points.size() > max_matches)
+		{
+			template_image_ = template_images_[i];
+			max_matches     = temp_template_points.size();
+			img_matches     = temp_img_matches;
+			template_points = temp_template_points;
+			search_points   = temp_search_points;
+		}
+	}
 
-//        if (temp_template_points.size() > max_matches)
-//        {
-//            template_image_ = template_images_[i];
-//            max_matches = temp_template_points.size();
-//            img_matches = temp_img_matches;
-//            template_points = temp_template_points;
-//            search_points = temp_search_points;
-//        }
-
-//    }
-//recognition part
-//    printBins();
-//    std::string object ="NOT_RECOGNIZED";
-//    checkRecognition(object);
-//    std::cout<<"RECOGNIZED OBJECT ==== "<<object<<std::endl;
-//    std::cout<<std::endl;
-//    std::cout<<std::endl;
+	ROS_INFO_STREAM("Template image loop finished");
+	
+	// recognition part
+	printBins();
+	std::string object = "NOT_RECOGNIZED";
+	checkRecognition(object);
+	ROS_INFO_STREAM("RECOGNIZED OBJECT ==== " << object);
 
 	//ransacing part
 //    pcl::PointCloud<pcl::PointXYZRGB>::Ptr template_color_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -388,7 +393,7 @@ void TemplateMatcher::cloudCallback(const sensor_msgs::PointCloud2Ptr &cloud_msg
 	ros::Duration time_since_last_callback = ros::Time::now() - publish_time_;
 	publish_time_ = ros::Time::now();
 
-	drawOnImage(
+	/*drawOnImage(
 		inliers,
 		static_cast<int>(temp_template_points.size()),
 		1 / time_since_last_callback.toSec(),
@@ -397,7 +402,7 @@ void TemplateMatcher::cloudCallback(const sensor_msgs::PointCloud2Ptr &cloud_msg
 
 	cv::namedWindow("Drawn Image", cv::WINDOW_AUTOSIZE);// Create a window for display.
 	cv::imshow("Drawn Image", temp_img_matches);
-	cv::waitKey(0);
+	cv::waitKey(0);*/
 /*
 	Testing for flickering matches -BEGIN
 */
@@ -485,7 +490,7 @@ void TemplateMatcher::cloudCallback(const sensor_msgs::PointCloud2Ptr &cloud_msg
 
 	//cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE);// Create a window for display.
 	//cv::imshow( "Display window", temp_img_matches);
-	publisher_.publish(convertCVToSensorMsg(temp_img_matches));
+	//publisher_.publish(convertCVToSensorMsg(temp_img_matches));
 }
 
 void TemplateMatcher::publishTF(

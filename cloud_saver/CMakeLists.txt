@@ -134,8 +134,8 @@ include_directories(include
 ## Declare a C++ executable
 add_library(cloud_saver_node src/cloud_saver.cpp)
 target_link_libraries(cloud_saver_node ${catkin_LIBRARIES})
-add_executable(main_saver_node src/main_saver.cpp)
-target_link_libraries(main_saver_node ${catkin_LIBRARIES} cloud_saver_node)
+add_executable(cloud_saver src/main_saver.cpp)
+target_link_libraries(cloud_saver ${catkin_LIBRARIES} cloud_saver_node)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
