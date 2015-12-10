@@ -149,6 +149,11 @@ target_link_libraries(probabilistic_matching template_library_lib pcd_io)
 target_link_libraries(probabilistic_matching ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 set_target_properties(probabilistic_matching PROPERTIES ENABLE_EXPORTS ON)
 
+add_executable(modelsaver src/main_modelsaver.cpp src/objects_database.cpp src/object_data.cpp src/probabilisticmatcher.cpp)
+target_link_libraries(modelsaver template_library_lib pcd_io)
+target_link_libraries(modelsaver ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+set_target_properties(modelsaver PROPERTIES ENABLE_EXPORTS ON)
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure

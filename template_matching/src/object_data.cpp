@@ -2,7 +2,7 @@
 
 ObjectData::ObjectData(
 	const std::string &id, 
-	const POSE &pose, 
+	const Pose::POSE &pose, 
 	const cv::Mat &image, 
 	const std::vector<cv::KeyPoint> &keypoints, 
 	cv::Mat &descriptors)

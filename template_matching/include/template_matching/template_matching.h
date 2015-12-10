@@ -5,7 +5,6 @@
 #include <feature_cv_waitinglist/feature_matching.h>
 #include <template_library/template_library.h>
 
-
 #include <ros/ros.h>
 
 #include <opencv2/highgui/highgui.hpp>
@@ -16,7 +15,6 @@
 #include <message_filters/subscriber.h>
 
 #include <pcl/segmentation/sac_segmentation.h>
-
 #include <pcl/conversions.h>
 #include <pcl/io/pcd_io.h>
 
@@ -25,16 +23,16 @@
 #include <dynamic_reconfigure/server.h>
 #include "../../cfg/cpp/template_matching/MatcherConfig.h"
 
+#include <tf/transform_broadcaster.h>
+
+#include <string>
+
 /*
  * template_matching.h
  *
  *  Created on: jan 8, 2013
  *      Author: Karol Hausman
  */
-
-#include <tf/transform_broadcaster.h>
-
-#include <string>
 
 class TemplateMatcher
 {

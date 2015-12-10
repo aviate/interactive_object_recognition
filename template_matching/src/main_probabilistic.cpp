@@ -1,36 +1,34 @@
 #include <ros/ros.h>
+#include <boost/filesystem.hpp>
+
 #include "template_matching/objects_database.h"
 #include "template_matching/probabilisticmatcher.h"
 
+const char* filename = "MODEL_SIFT_STANDARD.txt";
+
 int main (int argc, char** argv)
 {
-    ros::init(argc, argv, "template_matcher");
+	ros::init(argc, argv, "template_matcher");
 
-    ros::NodeHandle nh("~") ;
+	if (!boost::filesystem::exists(filename)) {
+		ROS_ERROR_STREAM("File \"" << filename << "\" could not be found.");
+		ROS_ERROR_STREAM("Models could not be loaded.");
+		return 1;
+	}
 
-    ObjectsDatabase database;
-    TemplateLibrary library;
-    database.createDatabase(library);
-    database.createTrainingDatabase(library);
+	ros::NodeHandle nh("~");
+	ObjectsDatabase database;
 
-    database.trainDatabase();
-    database.printDatabases();
-    database.saveModels("MODEL_SIFT_STANDARD.txt");
+	database.loadModels(filename);
+	ROS_INFO_STREAM("Finished loading models from " << filename);
+	database.printDatabases();
 
-//    database.loadModels("MODEL_SIFT_STANDARD.txt");
-//    database.printDatabases();
+	ProbabilisticMatcher matcher(nh, &database);
 
-
-//    ProbabilisticMatcher matcher(nh, &database);
-
-//    database.printDatabases();
-
-    ROS_INFO("training ready");
-    ros::Rate loop_rate (30);
-    while (ros::ok())
-    {
-        ros::spinOnce ();
-        loop_rate.sleep ();
-    }
+	ros::Rate loop_rate(30);
+	while (ros::ok())
+	{
+		ros::spinOnce();
+		loop_rate.sleep();
+	}
 }
-

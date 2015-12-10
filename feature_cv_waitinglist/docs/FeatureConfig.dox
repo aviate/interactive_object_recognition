@@ -4,16 +4,16 @@ Reads and maintains the following parameters on the ROS server
 
 - \b "~feature_detector" : \b [int] Feature Detector min: 0, default: 0, max: 6
 - \b "~feature_extractor" : \b [int] Feature Extractor min: 0, default: 0, max: 5
-- \b "~descriptor_matcher" : \b [int] Descriptor matcher min: 0, default: 0, max: 4
+- \b "~descriptor_matcher" : \b [int] Descriptor matcher min: 0, default: 3, max: 4
 - \b "~feature_detector_parameter_name" : \b [str] Enter the name of a algorithm parameter to change min: , default: nFeatures, max: 
-- \b "~feature_detector_parameter_value" : \b [str] Change the parameter here.  It will automatically be converted to the correct type min: , default: 0, max: 
+- \b "~feature_detector_parameter_value" : \b [str] Change the parameter here.  It will automatically be converted to the correct type min: , default: 1200, max: 
 - \b "~feature_extractor_parameter_name" : \b [str] Enter the name of a algorithm parameter to change min: , default: nFeatures, max: 
 - \b "~feature_extractor_parameter_value" : \b [str] Change the parameter here.  It will automatically be converted to the correct type min: , default: 0, max: 
 - \b "~reduce_search_area" : \b [bool] only searches in the same place of the image for a match min: False, default: True, max: True
 - \b "~search_distance" : \b [int] number of pixels away from keypoint to search for a match min: 1, default: 1, max: 150
 - \b "~distinct_matches" : \b [bool] enables the following sliders.  Does radius matching (in descriptor distance space) and rejects close or bad matches min: False, default: True, max: True
-- \b "~max_radius_search_dist" : \b [double] radius search threshold min: 0.0, default: 0.5, max: 2000.0
-- \b "~matching_distance_ratio_threshold" : \b [double] matching_distance_ratio_threshold min: 0.0, default: 0.5, max: 1.0
+- \b "~max_radius_search_dist" : \b [double] radius search threshold min: 0.0, default: 1500.0, max: 2000.0
+- \b "~matching_distance_ratio_threshold" : \b [double] matching_distance_ratio_threshold min: 0.0, default: 0.87, max: 1.0
 - \b "~horizontal_matches" : \b [bool] Horizontal matches min: False, default: False, max: True
 - \b "~horizontal_threshold" : \b [int] Horizontal matches threshold min: 0, default: 1, max: 100
 - \b "~tracking_matches" : \b [bool] Tracking matches min: False, default: True, max: True

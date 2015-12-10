@@ -30,11 +30,10 @@ int main(int argc, char **argv)
 
 	TemplateLibrary library;
 
-	std::string package_path            = ros::package::getPath("template_library");
-	std::string source_directory        = package_path + "/source/";
-	std::string data_directory          = package_path + "/data/";
-	std::string training_directory      = package_path + "/training/";
-	std::string training_data_directory = package_path + "/training_data/";
+	std::string source_directory        = TemplateLibrary::source_directory();
+	std::string data_directory          = TemplateLibrary::data_directory();
+	std::string training_directory      = TemplateLibrary::training_directory();
+	std::string training_data_directory = TemplateLibrary::training_data_directory();
 
 	// create directories if necessary
 	create_directories(source_directory);
@@ -43,7 +42,7 @@ int main(int argc, char **argv)
 	create_directories(training_directory);
 	create_directories(training_data_directory);
 
-//    library.generateTemplateData(source_directory, data_directory);
+	library.generateTemplateData(source_directory, data_directory);
 
 	library.generateTemplateData(training_directory, training_data_directory);
 

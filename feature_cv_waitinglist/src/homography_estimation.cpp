@@ -11,17 +11,15 @@
 
 #include <Eigen/SVD>
 
-HomographyEstimation::HomographyEstimation ()
+HomographyEstimation::HomographyEstimatio()
 {
 	// TODO Auto-generated constructor stub
-
 }
 
-HomographyEstimation::~HomographyEstimation ()
+HomographyEstimation::~HomographyEstimation()
 {
 	// TODO Auto-generated destructor stub
 }
-
 
 void HomographyEstimation::calculateHomography(const std::vector<FeatureMatching> &input_matches, Eigen::Vector3f &homography_solution)
 {
@@ -34,13 +32,13 @@ void HomographyEstimation::calculateHomography(const std::vector<FeatureMatching
 	for (itr = normalized_points.begin(); itr != normalized_points.end(); itr++)
 	{
 		int A_row = (itr - normalized_points.begin()) * 2;
-		Eigen::Vector3f source_point(itr->first->keyPointLocationX, itr->first->keyPointLocationY, 1.0);//(float)itr->first->scale);
+		Eigen::Vector3f source_point(itr->first->keyPointLocationX, itr->first->keyPointLocationY, 1.0);// (float)itr->first->scale);
 		Eigen::Vector3f destination_point(itr->second->keyPointLocationX, itr->second->keyPointLocationY, 1.0);// (float)itr->second->scale);
 
-		A.block<1, 3>(A_row,3) = -destination_point(2) * source_point.transpose();
-		A.block<1, 3>(A_row,6) = destination_point(1) * source_point.transpose();
-		A.block<1, 3>(A_row + 1,0) = destination_point(2) * source_point.transpose();
-		A.block<1, 3>(A_row + 1,6) = -destination_point(0) * source_point.transpose();
+		A.block<1, 3>(A_row, 3) = -destination_point(2) * source_point.transpose();
+		A.block<1, 3>(A_row, 6) = destination_point(1) * source_point.transpose();
+		A.block<1, 3>(A_row + 1, 0) = destination_point(2) * source_point.transpose();
+		A.block<1, 3>(A_row + 1, 6) = -destination_point(0) * source_point.transpose();
 	}
 
 	//ROS_ERROR_STREAM("A " << A);

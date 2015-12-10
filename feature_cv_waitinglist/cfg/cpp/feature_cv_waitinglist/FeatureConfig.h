@@ -527,7 +527,7 @@ FeatureConfig::GroupDescription<FeatureConfig::DEFAULT, FeatureConfig> Default("
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
       __max__.descriptor_matcher = 4;
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
-      __default__.descriptor_matcher = 0;
+      __default__.descriptor_matcher = 3;
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
       Default.abstract_parameters.push_back(FeatureConfig::AbstractParamDescriptionConstPtr(new FeatureConfig::ParamDescription<int>("descriptor_matcher", "int", 0, "Descriptor matcher", "{'enum_description': 'Extractor Matchers', 'enum': [{'srcline': 30, 'description': 'FLANN', 'srcfile': '/home/eric/catkin_ws/src/feature_cv_waitinglist/cfg/FeatureConfig.cfg', 'cconsttype': 'const int', 'value': 0, 'ctype': 'int', 'type': 'int', 'name': 'FLANN'}, {'srcline': 31, 'description': 'Bruteforce_Hamming_1', 'srcfile': '/home/eric/catkin_ws/src/feature_cv_waitinglist/cfg/FeatureConfig.cfg', 'cconsttype': 'const int', 'value': 1, 'ctype': 'int', 'type': 'int', 'name': 'Bruteforce_Hamming_1'}, {'srcline': 32, 'description': 'Bruteforce_Hamming_2', 'srcfile': '/home/eric/catkin_ws/src/feature_cv_waitinglist/cfg/FeatureConfig.cfg', 'cconsttype': 'const int', 'value': 2, 'ctype': 'int', 'type': 'int', 'name': 'Bruteforce_Hamming_2'}, {'srcline': 33, 'description': 'Bruteforce_L1', 'srcfile': '/home/eric/catkin_ws/src/feature_cv_waitinglist/cfg/FeatureConfig.cfg', 'cconsttype': 'const int', 'value': 3, 'ctype': 'int', 'type': 'int', 'name': 'Bruteforce_L1'}, {'srcline': 34, 'description': 'Bruteforce_L2', 'srcfile': '/home/eric/catkin_ws/src/feature_cv_waitinglist/cfg/FeatureConfig.cfg', 'cconsttype': 'const int', 'value': 4, 'ctype': 'int', 'type': 'int', 'name': 'Bruteforce_L2'}]}", &FeatureConfig::descriptor_matcher)));
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
@@ -547,7 +547,7 @@ FeatureConfig::GroupDescription<FeatureConfig::DEFAULT, FeatureConfig> Default("
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
       __max__.feature_detector_parameter_value = "";
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
-      __default__.feature_detector_parameter_value = "0";
+      __default__.feature_detector_parameter_value = "1200";
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
       Default.abstract_parameters.push_back(FeatureConfig::AbstractParamDescriptionConstPtr(new FeatureConfig::ParamDescription<std::string>("feature_detector_parameter_value", "str", 0, "Change the parameter here.  It will automatically be converted to the correct type", "", &FeatureConfig::feature_detector_parameter_value)));
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
@@ -607,7 +607,7 @@ FeatureConfig::GroupDescription<FeatureConfig::DEFAULT, FeatureConfig> Default("
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
       __max__.max_radius_search_dist = 2000.0;
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
-      __default__.max_radius_search_dist = 0.5;
+      __default__.max_radius_search_dist = 1500.0;
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
       Default.abstract_parameters.push_back(FeatureConfig::AbstractParamDescriptionConstPtr(new FeatureConfig::ParamDescription<double>("max_radius_search_dist", "double", 0, "radius search threshold", "", &FeatureConfig::max_radius_search_dist)));
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
@@ -617,7 +617,7 @@ FeatureConfig::GroupDescription<FeatureConfig::DEFAULT, FeatureConfig> Default("
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
       __max__.matching_distance_ratio_threshold = 1.0;
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
-      __default__.matching_distance_ratio_threshold = 0.5;
+      __default__.matching_distance_ratio_threshold = 0.87;
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"
       Default.abstract_parameters.push_back(FeatureConfig::AbstractParamDescriptionConstPtr(new FeatureConfig::ParamDescription<double>("matching_distance_ratio_threshold", "double", 0, "matching_distance_ratio_threshold", "", &FeatureConfig::matching_distance_ratio_threshold)));
 //#line 259 "/opt/ros/hydro/lib/python2.7/dist-packages/dynamic_reconfigure/parameter_generator.py"

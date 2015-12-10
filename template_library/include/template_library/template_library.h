@@ -1,4 +1,3 @@
-
 #ifndef TEMPLATELIBRARY_H_
 #define TEMPLATELIBRARY_H_
 
@@ -13,6 +12,8 @@
 
 #include <pcd_io/pcd_io.h>
 
+#include "pose.h"
+
 /*
  * template_library.h
  *
@@ -20,6 +21,9 @@
  *      Author: Karol Hausman
  */
 
+/**
+ * @brief      Templates represent a labeled data entry (point clouds, images, pose).
+ */
 struct Template
 {
 	Template(
@@ -28,7 +32,7 @@ struct Template
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr,
 		pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_with_inliers_ptr,
 		std::string name,
-		int &pose
+		Pose::POSE pose = Pose::POSE_UNKNOWN
 	):
 		cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
 		cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>)
@@ -47,25 +51,6 @@ struct Template
 		cv::Mat image,
 		cv::Mat no_plane_image,
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr,
-		pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_with_inliers_ptr,
-		std::string name
-	):
-		cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
-		cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>)
-	{
-		cloud_with_inliers_ptr_.reset(
-			new pcl::PointCloud<pcl::PointXYZLRegionF>(*cloud_with_inliers_ptr)
-		);
-		cloud_ptr_.reset(new pcl::PointCloud<pcl::PointXYZRGB>(*cloud_ptr));
-		image_ = image;
-		no_plane_image_ = no_plane_image;
-		name_ = name;
-	}
-
-	Template(
-		cv::Mat image,
-		cv::Mat no_plane_image,
-		pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr,
 		std::string name
 	):
 		cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
@@ -75,6 +60,7 @@ struct Template
 		image_ = image;
 		no_plane_image_ = no_plane_image;
 		name_ = name;
+		pose_ = Pose::POSE_UNKNOWN;
 	}
 
 	Template(
@@ -88,6 +74,7 @@ struct Template
 		cloud_ptr_.reset(new pcl::PointCloud<pcl::PointXYZRGB>(*cloud_ptr));
 		image_ = image;
 		name_ = name;
+		pose_ = Pose::POSE_UNKNOWN;
 	}
 
 	Template(
@@ -99,6 +86,7 @@ struct Template
 	{
 		image_ = image;
 		name_ = name;
+		pose_ = Pose::POSE_UNKNOWN;
 	}
 
 	Template(
@@ -111,6 +99,7 @@ struct Template
 		image_ = image;
 		no_plane_image_ = no_plane_image;
 		name_ = name;
+		pose_ = Pose::POSE_UNKNOWN;
 	}
 
 	inline void setName(const std::string &name)
@@ -147,7 +136,7 @@ struct Template
 	pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_with_inliers_ptr_;
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr_;
 	std::string name_;
-	uint pose_;
+	Pose::POSE pose_;
 };
 
 class TemplateLibrary
@@ -170,6 +159,11 @@ public:
 	cv::Mat restoreCVMatFromPointCloud(
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_in_ptr
 	);
+
+	static std::string data_directory();
+	static std::string source_directory();
+	static std::string training_directory();
+	static std::string training_data_directory();
 
 private:
 	void reconfigCallback(
@@ -215,10 +209,10 @@ private:
 	void generateNames(
 		const std::string &data_directory,
 		const int &i,
-		std::stringstream &ss_image,
-		std::stringstream &ss_no_plane_image,
-		std::stringstream &ss_cloud_rgb,
-		std::stringstream &ss_cloud_inliers
+		std::string &s_image,
+		std::string &s_no_plane_image,
+		std::string &s_cloud_rgb,
+		std::string &s_cloud_inliers
 	);
 
 	cv::Mat restoreCVMatNoPlaneFromPointCloud(
@@ -237,10 +231,10 @@ private:
 	dynamic_reconfigure::Server<template_library::LibraryConfig> reconfig_srv_;
 	dynamic_reconfigure::Server<template_library::LibraryConfig>::CallbackType
 	reconfig_callback_;
-	std::string data_directory_;
-	std::string source_directory_;
-	std::string training_directory_;
-	std::string training_data_directory_;
+	static std::string data_directory_;
+	static std::string source_directory_;
+	static std::string training_directory_;
+	static std::string training_data_directory_;
 };
 
 #endif /* TEMPLATELIBRARY_H_ */

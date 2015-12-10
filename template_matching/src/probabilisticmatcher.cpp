@@ -8,8 +8,10 @@
 
 const static std::string image_matches_topic = "/image_matches";
 
-ProbabilisticMatcher::ProbabilisticMatcher(ros::NodeHandle &nh, ObjectsDatabase* objects_database):
-	matcher_(), image_transport_(nh), objects_database_(objects_database),template_library_()
+ProbabilisticMatcher::ProbabilisticMatcher(
+	ros::NodeHandle &nh, ObjectsDatabase* objects_database
+):
+	matcher_(), image_transport_(nh), objects_database_(objects_database), template_library_()
 {
 	cloud_subscriber_ = nh.subscribe(
 		"/camera/depth_registered/points",
@@ -98,4 +100,3 @@ void ProbabilisticMatcher::cloudCallback(const sensor_msgs::PointCloud2Ptr &clou
 		ROS_INFO_STREAM(matches_per_image_[i] << ", ");
 	}
 }
-

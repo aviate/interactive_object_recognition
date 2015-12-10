@@ -128,6 +128,12 @@ private:
 		std::vector<cv::DMatch> &matches
 	);
 
+	/**
+	 * @brief      Dynamic reconfigure callback.
+	 *
+	 * @param      config  The new configuration.
+	 * @param[in]  level   Custom level (unused).
+	 */
 	void reconfigCallback(
 		feature_cv_waitinglist::FeatureConfig &config,
 		uint32_t level

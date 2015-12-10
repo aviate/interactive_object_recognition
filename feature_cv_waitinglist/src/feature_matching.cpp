@@ -20,9 +20,6 @@
 #include <limits>
 
 
-//TODO remove this
-//#include <opencv2/highgui/highgui.hpp>
-
 const static int FAST_threshold = 50;
 const static int grid_max_number_keypoints = 1000;
 const static bool FREAK_normalize_orientation = true;
@@ -140,6 +137,12 @@ void FeatureMatching::setParameter(
 	}
 }
 
+/**
+ * @brief      Dynamic reconfigure callback.
+ *
+ * @param      config  The new configuration.
+ * @param[in]  level   Custom level (unused).
+ */
 void FeatureMatching::reconfigCallback(
 	feature_cv_waitinglist::FeatureConfig &config,
 	uint32_t level)
@@ -207,7 +210,9 @@ void FeatureMatching::reconfigCallback(
 
 	feature_detector_                  = config.feature_detector;
 	feature_extractor_                 = config.feature_extractor;
-	descriptor_matcher_                = config.descriptor_matcher;
+	ROS_INFO_STREAM("Using descriptor matcher " << config.descriptor_matcher);
+	//TODO use configuration.
+	descriptor_matcher_                = 3; //FLANN; //config.descriptor_matcher;
 	max_radius_search_dist_            = config.max_radius_search_dist;
 	matching_distance_ratio_threshold_ = config.matching_distance_ratio_threshold;
 	horizontal_threshold_              = config.horizontal_threshold;
@@ -218,7 +223,8 @@ void FeatureMatching::reconfigCallback(
 	distance_factor_                   = config.distance_factor;
 	feature_detector_parameter_value_  = config.feature_detector_parameter_value;
 	feature_extractor_parameter_value_ = config.feature_extractor_parameter_value;
-	timing_debug_                      = config.timing_debug;
+	//TODO use configuration.
+	timing_debug_                      = true; //config.timing_debug;
 	outlier_removal_                   = config.outlier_removal;
 	retain_all_prev_matches_           = config.retain_all_prev_matches;
 	min_tracking_matches_              = config.min_tracking_matches;
@@ -228,7 +234,6 @@ void FeatureMatching::reconfigCallback(
 	search_dist_                       = config.search_distance;
 
 	ROS_INFO_STREAM("RECONFIGURED FeatureMatching.");
-	ROS_ERROR_STREAM("RECONFIGURED FeatureMatching.");
 }
 
 cv::Mat FeatureMatching::convertToBlackWhite(const cv::Mat &input_image)
@@ -241,7 +246,15 @@ cv::Mat FeatureMatching::convertToBlackWhite(const cv::Mat &input_image)
 	return output_image;
 }
 
-void convertDescriptors(const std::vector<float> &float_descriptors, cv::Mat &mat_descriptors)
+/**
+ * @brief      Converts vector of descriptors to CV matrix.
+ *
+ * @param[in]  float_descriptors  { parameter_description }
+ * @param      mat_descriptors    { parameter_description }
+ */
+void convertDescriptors(
+	const std::vector<float> &float_descriptors,
+	cv::Mat &mat_descriptors)
 {
 	// create descriptor matrix
 	const int size = float_descriptors.size() / 128;
@@ -279,7 +292,7 @@ bool FeatureMatching::getDescriptorMatches(
 //     	extractFeatures (template_bw_image, template_keypoints_deb, template_descriptors_deb);
 	}
 
-	if ((search_keypoints.size() == 0) || (template_keypoints.size()==0))
+	if ((search_keypoints.size() == 0) || (template_keypoints.size() == 0))
 	{
 		ROS_WARN_STREAM("Not enough keypoints to perform matching.");
 		ROS_WARN_STREAM("Search keypoints size: " << search_keypoints.size());
@@ -294,6 +307,8 @@ bool FeatureMatching::getDescriptorMatches(
 	if (distinct_matches_)
 	{
 		std::vector<std::vector<cv::DMatch> > initial_matches;
+		//TODO remove this!
+		descriptor_matcher_ = 3;
 		if (!feature_matcher_ptrs_[descriptor_matcher_]->empty())
 		{
 			feature_matcher_ptrs_[descriptor_matcher_]->add(template_descriptors);
@@ -302,8 +317,6 @@ bool FeatureMatching::getDescriptorMatches(
 		feature_matcher_ptrs_[descriptor_matcher_]->radiusMatch(
 			search_descriptors, initial_matches, (float)max_radius_search_dist_
 		);
-
-		ROS_INFO_STREAM("initial matches: " << initial_matches.size());
 
 		ROS_INFO_STREAM("size of template descriptors(rows): " << template_descriptors.rows);
 		ROS_INFO_STREAM("size of template descriptors(cols): " << template_descriptors.cols);
@@ -321,8 +334,10 @@ bool FeatureMatching::getDescriptorMatches(
 
 		feature_matcher_ptrs_[descriptor_matcher_]->radiusMatch(
 			template_descriptors, search_descriptors,
-			initial_matches, (float)max_radius_search_dist_
+			initial_matches, 1500 //TODO (float)max_radius_search_dist_
 		);
+
+		ROS_INFO_STREAM("initial matches: " << initial_matches.size());
 
 		filterMatches(initial_matches, matches);
 	}
@@ -416,14 +431,17 @@ bool FeatureMatching::getMatches(
 
 	if (search_keypoints.size() == 0 || template_keypoints.size() == 0)
 	{
-		ROS_WARN_STREAM("not enough keypoints to do matching");
+		ROS_WARN_STREAM("not enough keypoints to perform matching");
+		ROS_WARN_STREAM("Search keypoints size: " << search_keypoints.size());
+		ROS_WARN_STREAM("Template keypoints size: " << template_keypoints.size());
 		return false;
 	}
 
 	// do matching
 	std::vector<cv::DMatch> good_matches;
 	std::vector<cv::DMatch> matches;
-	std::vector<uint> template_new_to_old_correspondences, search_new_to_old_correspondences;
+	std::vector<uint> template_new_to_old_correspondences;
+	std::vector<uint> search_new_to_old_correspondences;
 //  this->findMatches (template_descriptors, search_descriptors, good_matches);
 	this->findMatches(
 		template_keypoints, template_descriptors,
@@ -595,7 +613,7 @@ bool FeatureMatching::getFeatures(
 	// convert image to black and white
 	cv::Mat bw_image = convertToBlackWhite(image);
 
-	//get features
+	// get features
 	if (feature_detector_ == SIFTGPU_detector || feature_extractor_ == SIFTGPU_extractor)
 	{
 		SIFTGPUGetFeatures(bw_image, keypoints, descriptors);
@@ -608,7 +626,7 @@ bool FeatureMatching::getFeatures(
 
 	if (keypoints.size() == 0)
 	{
-		ROS_WARN_STREAM("not enough keypoints to do matching");
+		ROS_WARN_STREAM("there are no keypoints to perform matching");
 		return false;
 	}
 
@@ -656,7 +674,7 @@ void FeatureMatching::filterMatches(
 	{
 		if (all_matches[i].size() > 1)
 		{
-			if (all_matches[i][0].distance / all_matches[i][1].distance < matching_distance_ratio_threshold_)
+			if (all_matches[i][0].distance / all_matches[i][1].distance < 0.87 /*matching_distance_ratio_threshold_*/)
 				good_matches.push_back(all_matches[i][0]);
 		}
 	}
@@ -889,8 +907,12 @@ void FeatureMatching::removeOutliers(
 		{
 			matches.erase(matches.begin()+i);
 			distances.erase(distances.begin()+i);
-			template_new_to_prev_correspondence.erase(template_new_to_prev_correspondence.begin()+i);
-			search_new_to_prev_correspondence.erase(search_new_to_prev_correspondence.begin()+i);
+			template_new_to_prev_correspondence.erase(
+				template_new_to_prev_correspondence.begin() + i
+			);
+			search_new_to_prev_correspondence.erase(
+				search_new_to_prev_correspondence.begin() + i
+			);
 			i--;
 		}
 	}
@@ -898,12 +920,14 @@ void FeatureMatching::removeOutliers(
 
 void FeatureMatching::detectFeatures(const cv::Mat &input_image, std::vector<cv::KeyPoint> &keypoints)
 {
+	//TODO remove this
+	ROS_INFO_STREAM("Detecting features using feature detector #" << feature_detector_);
 	feature_detector_ptrs_[feature_detector_]->detect(input_image, keypoints);
 	if (timing_debug_)
 		ROS_INFO_STREAM("Found " << keypoints.size() << " keypoints");
 }
 
-void FeatureMatching::extractFeatures (const cv::Mat &input_image, std::vector<cv::KeyPoint> &keypoints, cv::Mat &descriptors)
+void FeatureMatching::extractFeatures(const cv::Mat &input_image, std::vector<cv::KeyPoint> &keypoints, cv::Mat &descriptors)
 {
 	feature_extractor_ptrs_[feature_extractor_]->compute(input_image, keypoints, descriptors);
 	if (timing_debug_)
@@ -974,12 +998,12 @@ void FeatureMatching::findMatches(
 	else if (distinct_matches_)
 	{
 		std::vector<std::vector<cv::DMatch> > initial_matches;
-		feature_matcher_ptrs_[descriptor_matcher_]->radiusMatch (source_descriptors, target_descriptors, initial_matches, (float)max_radius_search_dist_);
+		feature_matcher_ptrs_[descriptor_matcher_]->radiusMatch(source_descriptors, target_descriptors, initial_matches, (float)max_radius_search_dist_);
 		filterMatches (initial_matches, matches);
 	}
 	else
 	{
-		feature_matcher_ptrs_[descriptor_matcher_]->match (source_descriptors, target_descriptors, matches);
+		feature_matcher_ptrs_[descriptor_matcher_]->match(source_descriptors, target_descriptors, matches);
 	}
 
 	if (timing_debug_)
@@ -988,7 +1012,10 @@ void FeatureMatching::findMatches(
 
 
 void FeatureMatching::getDescriptorsInBox(
-	const int x_l, const int x_u, const int y_l, const int y_u,
+	const int x_l,
+	const int x_u,
+	const int y_l,
+	const int y_u,
 	const std::vector<cv::KeyPoint>& target_keypoints,
 	const cv::Mat& target_descriptors,
 	cv::Mat& nearby_descriptors)

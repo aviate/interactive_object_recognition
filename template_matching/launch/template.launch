@@ -15,7 +15,7 @@
     <param name="/feature_matcher/reduce_search_area"                value="false"                 />
     <param name="/feature_matcher/horizontal_threshold"              value="1"                     />
     <param name="/feature_matcher/matching_distance_ratio_threshold" value="0.67"                  />
-    <param name="/feature_matcher/max_radius_search_dist"            value="1500"                   />
+    <param name="/feature_matcher/max_radius_search_dist"            value="1500"                  />
     <param name="/feature_matcher/tracking_matches"                  value="false"                 />
     <param name="/feature_matcher/drawing_template"                  value="true"                  />
     <param name="/feature_matcher/tracking_threshold"                value="0"                     />

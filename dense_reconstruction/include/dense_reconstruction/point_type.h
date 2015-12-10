@@ -22,12 +22,12 @@ namespace pcl {
 
 POINT_CLOUD_REGISTER_POINT_STRUCT (
 	pcl::PointXYZLRegionF,
-    (float, x, x)
-    (float, y, y)
-    (float, z, z)
-    (float, reg, reg)
-    (uint32_t, label, label)
-    (uint32_t, f, f)
+	(float, x, x)
+	(float, y, y)
+	(float, z, z)
+	(float, reg, reg)
+	(uint32_t, label, label)
+	(uint32_t, f, f)
 );
 
 #endif /* POINT_TYPE_H_ */

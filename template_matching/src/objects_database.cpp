@@ -6,46 +6,81 @@
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
 
+#include <template_library/pose.h>
+
+using namespace Pose;
+
+/**
+ * @brief      Adds a new object to the database.
+ *
+ * @param[in]  object  The \ref ObjectData object.
+ */
 void ObjectsDatabase::addObject(const ObjectData &object)
 {
-
+	databaseObjects_.push_back(object);
 }
 
-void ObjectsDatabase::fit1DGaussianToData(const std::vector<float> &v, double &m, double &stdev)
+/**
+ * @brief      Calculates mean and standard deviation from input vector.
+ *
+ * @param[in]  v      Input float vector.
+ * @param[out] mẹan   The mean of the normal distribution.
+ * @param[out] stdev  The standard deviation of the normal distribution.
+ */
+void ObjectsDatabase::fit1DGaussianToData(const std::vector<float> &v, double &mean, double &stdev)
 {
 	double sum = std::accumulate(v.begin(), v.end(), 0.0);
-	m =  sum / v.size();
+	mean = sum / v.size();
 
 	double accum = 0.0;
 	for (uint i = 0; i < v.size(); i++)
 	{
-		accum += (v[i] - m) * (v[i] - m);
+		accum += (v[i] - mean) * (v[i] - mean);
 	}
 
 	stdev = sqrt(accum / (v.size() - 1));
 }
 
+/**
+ * @brief      Calculates gaussians (mean, stdDev) for the features
+ *             matched between each \ref DataObject.
+ */
 void ObjectsDatabase::trainDatabase()
 {
 	for (uint i = 0; i < databaseObjects_.size(); i++)
 	{
 		std::vector<std::vector<float> > match_distances;
 
-		for (std::vector<ObjectData>::iterator t_it = trainingObjectsArranged_[i].begin(); t_it != trainingObjectsArranged_[i].end(); t_it++)
+		std::vector<ObjectData>::iterator t_it;
+		for (t_it = trainingObjectsArranged_[i].begin();
+			t_it != trainingObjectsArranged_[i].end();
+			t_it++)
 		{
-			std::vector<cv::Point2f> training_image_template_points, training_image_search_points;
+			std::vector<cv::Point2f> training_image_template_points;
+			std::vector<cv::Point2f> training_image_search_points;
 			std::vector<cv::DMatch> training_image_matches;
 
-			for (uint database_i = 0; database_i < databaseObjects_.size(); database_i++)
+			for (uint database_i = 0;
+				database_i < databaseObjects_.size();
+				database_i++)
 			{
 				cv::Mat temp_img_matches;
 				std::vector<cv::Point2f> temp_template_points, temp_search_points;
 				std::vector<cv::DMatch> temp_matches;
 
-				//change such that it doesnt extract features
-				matcher_.getDescriptorMatches(databaseObjects_[database_i].image_, t_it->image_, databaseObjects_[database_i].database_feature_keypoints_, databaseObjects_[database_i].database_feature_descriptors_, temp_img_matches, temp_template_points, temp_search_points, temp_matches);
+				//TODO change such that it doesnt extract features
+				matcher_.getDescriptorMatches(
+					databaseObjects_[database_i].image_,
+					t_it->image_,
+					databaseObjects_[database_i].database_feature_keypoints_,
+					databaseObjects_[database_i].database_feature_descriptors_,
+					temp_img_matches,
+					temp_template_points,
+					temp_search_points,
+					temp_matches
+				);
 
-				if(database_i == 0)
+				if (database_i == 0)
 				{
 					training_image_matches = temp_matches;
 					training_image_template_points = temp_template_points;
@@ -71,11 +106,16 @@ void ObjectsDatabase::trainDatabase()
 				}
 			}
 
-//            std::cout<<"no of feature matches per training image : "<<training_image_matches.size()<<std::endl;
+			ROS_INFO_STREAM(
+				"no of feature matches per training image: "
+				<< training_image_matches.size()
+			);
 
-			//create the association between matches of the same features and store them in the vector of vector of doubles
+			// create the association between matches of the same features
+			// and store them in the vector of vector of doubles
 			std::vector<float> match_distances_per_image;
-			for (std::vector<cv::DMatch>::iterator m_it = training_image_matches.begin();
+			std::vector<cv::DMatch>::iterator m_it;
+			for (m_it = training_image_matches.begin();
 				m_it != training_image_matches.end();
 				m_it++)
 			{
@@ -85,11 +125,12 @@ void ObjectsDatabase::trainDatabase()
 			match_distances.push_back(match_distances_per_image);
 		}
 
-		//rearrange the features and put them in the trainingMatches
-		for (uint mpi_i = 0; mpi_i < match_distances[0].size(); mpi_i++)
+		ROS_INFO_STREAM("Rearranging features...");
+		// rearrange the features and put them in the trainingMatches
+		for (uint m_i = 0; m_i < match_distances.size(); m_i++)
 		{
 			std::vector<float> matches_per_feature;
-			for (uint m_i = 0; m_i < match_distances.size(); m_i++)
+			for (uint mpi_i = 0; mpi_i < match_distances[m_i].size(); mpi_i++)
 			{
 				matches_per_feature.push_back(match_distances[m_i][mpi_i]);
 			}
@@ -97,20 +138,34 @@ void ObjectsDatabase::trainDatabase()
 			databaseObjects_[i].training_matches_.push_back(matches_per_feature);
 		}
 
-		for (uint f_i = 0; f_i < databaseObjects_[i].training_matches_.size(); f_i++)
+		ROS_INFO_STREAM("Calculating Gaussian parameters");
+		for (uint f_i = 0;
+			f_i < databaseObjects_[i].training_matches_.size();
+			f_i++)
 		{
 			double mean = 0;
 			double stdev = 0;
-			fit1DGaussianToData(databaseObjects_[i].training_matches_[f_i], mean, stdev);
+			fit1DGaussianToData(
+				databaseObjects_[i].training_matches_[f_i],
+				mean,
+				stdev
+			);
 
 			std::pair<double, double> gaussian;
 			gaussian.first = mean;
 			gaussian.second = stdev;
 			databaseObjects_[i].matching_gaussians_.push_back(gaussian);
 		}
+		ROS_INFO_STREAM("Gaussian parameters calculated.");
 	}
 }
 
+/**
+ * @brief      Creates \ref ObjectData from the \ref TemplateLibrary's
+ *             templates and adds them to the databaseObjects.
+ *
+ * @param      templateLibrary  The \ref TemplateLibrary.
+ */
 void ObjectsDatabase::createDatabase(TemplateLibrary &templateLibrary)
 {
 	std::vector<Template> library_templates = templateLibrary.loadTemplates();
@@ -123,11 +178,20 @@ void ObjectsDatabase::createDatabase(TemplateLibrary &templateLibrary)
 		cv::Mat temp_descriptors;
 		matcher_.getFeatures(it->image_, temp_keypoints, temp_descriptors);
 
-		ObjectData object(it->name_, static_cast<POSE>(it->pose_), it->image_, temp_keypoints, temp_descriptors);
+		ObjectData object(
+			it->name_, it->pose_,
+			it->image_, temp_keypoints, temp_descriptors
+		);
 		databaseObjects_.push_back(object);
 	}
 }
 
+/**
+ * @brief      Creates \ref ObjectData from training data of the given \ref TemplateLibrary
+ *             and adds them to the trainingObjects.
+ *
+ * @param      templateLibrary  The \ref TemplateLibrary.
+ */
 void ObjectsDatabase::createTrainingDatabase(TemplateLibrary &templateLibrary)
 {
 	std::vector<Template> training_templates = templateLibrary.loadTemplates("training");
@@ -136,18 +200,21 @@ void ObjectsDatabase::createTrainingDatabase(TemplateLibrary &templateLibrary)
 		it != training_templates.end();
 		it++)
 	{
-
 		std::vector<cv::KeyPoint> temp_keypoints;
 		cv::Mat temp_descriptors;
 		matcher_.getFeatures(it->image_, temp_keypoints, temp_descriptors);
 
-
-		ObjectData trainingObject(it->name_, static_cast<POSE>((it->pose_)%(int)POSE_COUNT), it->image_, temp_keypoints, temp_descriptors);
+		ObjectData trainingObject(
+			it->name_,
+			it->pose_,
+			it->image_,
+			temp_keypoints,
+			temp_descriptors
+		);
 		trainingObjects_.push_back(trainingObject);
 	}
 
-	//rearrange the training objects
-
+	// rearrange the training objects
 	for (uint i = 0; i < databaseObjects_.size(); i++)
 	{
 		std::vector<ObjectData> objects_of_the_same_pair;
@@ -156,7 +223,6 @@ void ObjectsDatabase::createTrainingDatabase(TemplateLibrary &templateLibrary)
 
 	for (uint i = 0; i < databaseObjects_.size(); i++)
 	{
-
 		for (uint j = 0; j < trainingObjects_.size(); j++)
 		{
 			if (trainingObjects_[j].id_ == "used")
@@ -164,10 +230,10 @@ void ObjectsDatabase::createTrainingDatabase(TemplateLibrary &templateLibrary)
 				continue;
 			}
 
-			if (   (trainingObjects_ [j].id_   == databaseObjects_ [i].id_ )
-				&& (trainingObjects_ [j].pose_ == databaseObjects_[i].pose_))
+			if (   (trainingObjects_[j].id_   == databaseObjects_[i].id_ )
+				&& (trainingObjects_[j].pose_ == databaseObjects_[i].pose_))
 			{
-				trainingObjectsArranged_[i].push_back(trainingObjects_ [j]);
+				trainingObjectsArranged_[i].push_back(trainingObjects_[j]);
 				trainingObjects_[j].id_ = "used";
 			}
 		}
@@ -176,9 +242,12 @@ void ObjectsDatabase::createTrainingDatabase(TemplateLibrary &templateLibrary)
 //        std::cout<< "position in arranged = " << i% (databaseObjects_.size()) <<std::endl;
 //        std::cout<< "pushing object number: " << i <<std::endl;
 	}
-
+	ROS_INFO_STREAM("Training database created");
 }
 
+/**
+ * @brief      Prints key properties of all DatabaseObjects.
+ */
 void ObjectsDatabase::printDatabases()
 {
 	ROS_INFO("DATABASE OBJECTS: ");
@@ -186,7 +255,7 @@ void ObjectsDatabase::printDatabases()
 		it != databaseObjects_.end();
 		it++)
 	{
-		ROS_INFO_STREAM("ID: " << it->id_ << ", Pose: " << it->pose_);
+		ROS_INFO_STREAM("ID: " << it->id_ << ", Pose: " << POSE_AS_STRING(it->pose_));
 		ROS_INFO_STREAM(
 			   "No of keypoints: " << it->database_feature_keypoints_.size()
 			<< ", No of descriptors: " << it->database_feature_descriptors_.rows
@@ -221,6 +290,11 @@ void ObjectsDatabase::printDatabases()
 */
 }
 
+/**
+ * @brief      Loads DatabaseObjects from a file into the database.
+ *
+ * @param[in]  file_name  The file name.
+ */
 void ObjectsDatabase::loadModels(const std::string &file_name)
 {
 	databaseObjects_.clear();
@@ -241,12 +315,11 @@ void ObjectsDatabase::loadModels(const std::string &file_name)
 		{
 			if (isalpha(line.at(0)))
 			{
-
 				if (!first_iter)
 				{
 					object.training_matches_ = features_with_matches;
 
-					//load the descriptors
+					// load the descriptors
 //                    std::stringstream jpg_stream;
 //                    jpg_stream << object.id_ << "_" << object.pose_ <<".jpg";
 //                    cv::Mat temp = cv::imread(jpg_stream.str());
@@ -256,17 +329,16 @@ void ObjectsDatabase::loadModels(const std::string &file_name)
 //                    object.database_feature_descriptors_ = descriptors_image;
 
 					std::stringstream features_stream;
-					features_stream << object.id_ << "_" << object.pose_ << ".yml";
+					features_stream << object.id_ << "_" << (int)object.pose_ << ".yml";
 					cv::FileStorage fs(features_stream.str(), cv::FileStorage::READ);
 //                    fs["keypoints"] >> object.database_feature_keypoints_;
 					fs["descriptors"] >> object.database_feature_descriptors_;
 
 					databaseObjects_.push_back(object);
 
-					//clean the object
+					// clean the object
 					object.training_matches_.clear();
 					features_with_matches.clear();
-
 				}
 				
 				first_iter = false;
@@ -278,11 +350,14 @@ void ObjectsDatabase::loadModels(const std::string &file_name)
 				object.id_ = id;
 				object.pose_ = static_cast<POSE>(pose);
 
-//                std::cout<< "pose: " <<pose << "id: " <<id << std::endl;
+				ROS_INFO_STREAM(
+					"id: " << id << "  " <<
+					"pose: " << POSE_AS_STRING(object.pose_)
+				);
 			}
 			else
 			{
-				//extract the matching errors
+				// extract the matching errors
 				std::vector<float> matching_per_feature;
 
 				boost::tokenizer<boost::char_separator<char> > tokens(line, sep);
@@ -296,7 +371,7 @@ void ObjectsDatabase::loadModels(const std::string &file_name)
 			}
 		}
 
-		//after last iteration
+		// after last iteration
 		object.training_matches_ = features_with_matches;
 //        std::stringstream jpg_stream;
 //        jpg_stream << object.id_ << "_" << object.pose_ <<".jpg";
@@ -307,7 +382,7 @@ void ObjectsDatabase::loadModels(const std::string &file_name)
 //        object.database_feature_descriptors_ = descriptors_image;
 
 		std::stringstream features_stream;
-		features_stream << object.id_ << "_" << object.pose_ << ".yml";
+		features_stream << object.id_ << "_" << (int)object.pose_ << ".yml";
 		cv::FileStorage fs(features_stream.str(), cv::FileStorage::READ);
 //        fs["keypoints"] >> object.database_feature_keypoints_;
 		fs["descriptors"] >> object.database_feature_descriptors_;
@@ -318,23 +393,24 @@ void ObjectsDatabase::loadModels(const std::string &file_name)
 	}
 }
 
-
-
-  /*
-  * Saves all the databaseObjects_ into a file called file_name
-  */
+/**
+ * @brief      Saves all DatabaseObjects to a file.
+ *
+ * @param[in]  file_name  The file name.
+ */
 void ObjectsDatabase::saveModels(const std::string &file_name)
 {
 	std::ofstream myfile;
-	myfile.open (file_name.c_str());
+	myfile.open(file_name.c_str());
 
+	ROS_INFO_STREAM("Saving models into " << file_name);
 
-	//iterate through all database objects
+	// iterate through all database objects
 	for (std::vector<ObjectData>::iterator it = databaseObjects_.begin();
 		it != databaseObjects_.end();
 		it++)
 	{
-		//get the name and the pose of the respective object and save it
+		// get the name and the pose of the respective object and save it
 		myfile << it->id_ << ", " << it->pose_ << "\n";
 
 		for (uint i = 0; i < it->training_matches_.size(); i++)

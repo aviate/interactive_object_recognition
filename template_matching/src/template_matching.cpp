@@ -10,18 +10,10 @@
  
 #include <pcl_conversions/pcl_conversions.h>
 
-//TODO remove this
-//#include <opencv2/highgui/highgui.hpp>
-
 #include "util.cpp"
 
-//TODO: fix paths
-const static std::string template_filename             = "/home/karol/Desktop/frame0000.jpg";
 const static std::string subscribe_topic               = "/camera/depth_registered/points";
 const static std::string image_matches_topic           = "/image_matches";
-const static std::string cloud_name                    = "/home/karol/Desktop/template1.pcd";
-const static std::string db_image_filename             = "/home/eric/catkin_ws/src/template_matching/images/purse.jpg";
-const static std::string search_image_filename         = "/home/eric/catkin_ws/src/template_matching/images/eiffel2.jpg";
 const static double plane_detection_distance_threshold = 0.02;
 
 TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
@@ -35,12 +27,7 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
 {
 	first_one_ = true;
 	publish_time_ = ros::Time::now();
-//    template_image_ = cv::Mat (cvLoadImage (template_filename.c_str (), CV_LOAD_IMAGE_COLOR));
-	//template_library_.generateTemplateData();
-	//template_library_.loadTemplates();
-//    template_image_ = template_library_.loadTemplates()[0].no_plane_image_;
 
-//    template_image_ = template_library_.loadTemplates()[0].image_;
 	library_templates_ = template_library_.loadTemplates("training");
 
 	ROS_INFO_STREAM(library_templates_.size() << " templates were loaded.");
@@ -76,10 +63,6 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
 
 //    subscriber_ = image_transport_.subscribe(subscribe_topic, 1, &TemplateMatcher::imageCallback, this);
 	cloud_subscriber_ = nh.subscribe(subscribe_topic, 1, &TemplateMatcher::cloudCallback, this);
-
-	//TODO remove this
-	//sensor_msgs::PointCloud2Ptr ptr(new sensor_msgs::PointCloud2);
-	//cloudCallback(ptr);
 
 	publisher_ = image_transport_.advertise(image_matches_topic, 1);
 }
@@ -327,9 +310,6 @@ void TemplateMatcher::cloudCallback(const sensor_msgs::PointCloud2Ptr &cloud_msg
 			temp_search_points,
 			temp_matches
 		);
-
-		//cv::Mat database_image = cv::imread(db_image_filename, 1);
-		//cv::Mat search_image = cv::imread(search_image_filename, 1);
 
 		cv::namedWindow("Drawn Image", cv::WINDOW_AUTOSIZE);// Create a window for display.
 		cv::imshow("Drawn Image", temp_img_matches);
